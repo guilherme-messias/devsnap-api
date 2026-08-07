@@ -15,7 +15,7 @@ export class AppController {
   }
 
   @Get('/episodes')
-  getEpisodes() {
+  async getEpisodes() {
     return this.prisma.episode.findMany();
   }
 }
