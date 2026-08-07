@@ -11,3 +11,16 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Episode {
+  id         String   @id @default(uuid())
+  title      String
+  stack      String
+  error      String
+  solution   String
+  reviewed   Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("episodes")
+}

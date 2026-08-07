@@ -1,12 +1,11 @@
 services:
   devsnap-db:
     container_name: devsnap-db
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_USER: devsnap_user
       POSTGRES_PASSWORD: devsnap_password
       POSTGRES_DB: devsnap_db
-      PGDATA: /data/lib/postgresql/data
     ports:
       - '5433:5432'
     volumes:
