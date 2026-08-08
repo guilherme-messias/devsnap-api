@@ -13,6 +13,13 @@ export class ZodValidationPipe implements PipeTransform {
       const parsedValue = this.schema.parse(value);
       return parsedValue;
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new BadRequestException({
+          message: 'Validation failed',
+          statusCode: 400,
+          errors: z.flattenError(error),
+        });
+      }
       throw new BadRequestException('Validation failed');
     }
   }
