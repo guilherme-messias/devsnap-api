@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { CreateEpisodeController } from './controllers/create-episode.controller';
+import { FetchRecentEpisodesController } from './controllers/fetch-recent-episodes.controller';
 
 @Module({
   imports: [
@@ -12,7 +13,11 @@ import { CreateEpisodeController } from './controllers/create-episode.controller
       envFilePath: '.env',
     }),
   ],
-  controllers: [AppController, CreateEpisodeController],
+  controllers: [
+    AppController,
+    CreateEpisodeController,
+    FetchRecentEpisodesController,
+  ],
   providers: [AppService, PrismaService],
 })
 export class AppModule {}

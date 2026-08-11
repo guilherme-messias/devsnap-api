@@ -7,6 +7,6 @@ services:
       POSTGRES_PASSWORD: devsnap_password
       POSTGRES_DB: devsnap_db
     ports:
-      - '5433:5432'
+      - '5434:5432'
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
