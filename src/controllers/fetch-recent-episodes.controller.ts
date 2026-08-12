@@ -1,37 +1,36 @@
-import { Body, Controller, HttpCode, Get, UsePipes } from '@nestjs/common';
+import { Controller, HttpCode, Get, Query } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  createEpisodeSchema,
-  type CreateEpisodeRequest,
-} from './schemas/episode.type';
+import z from 'zod';
 import { ZodValidationPipe } from '../pipes/ZodValidationPipe';
 
+const pageQueryParamsSchema = z
+  .string()
+  .optional()
+  .default('1')
+  .transform(Number)
+  .pipe(z.number().int().min(1));
+
+const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
 @Controller('/episodes')
 export class FetchRecentEpisodesController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
   @HttpCode(200)
-  // @UsePipes(new ZodValidationPipe(createEpisodeSchema))
-  async fetchRecentEpisodes() {
-    // const { title, stack, error, solution } = body;
+  async fetchRecentEpisodes(
+    @Query('page', queryValidationPipe) page: PageQueryParams,
+  ) {
+    const perPage = 1;
 
     const episodes = await this.prisma.episode.findMany({
+      take: perPage,
+      skip: (page - 1) * perPage,
       orderBy: {
         created_at: 'desc',
       },
     });
 
-    return episodes;
-    // const episode = await this.prisma.episode.create({
-    //   data: {
-    //     title,
-    //     stack,
-    //     error,
-    //     solution,
-    //   },
-    // });
-
-    // return episode;
+    return { episodes };
   }
 }
