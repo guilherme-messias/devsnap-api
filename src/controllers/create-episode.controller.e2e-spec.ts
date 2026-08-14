@@ -20,7 +20,7 @@ describe('Create Episode (E2E)', () => {
     await app.init();
   });
 
-  test('[POST] /episodes', async () => {
+  test('should create an episode when payload is valid', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
       .send({
@@ -38,5 +38,18 @@ describe('Create Episode (E2E)', () => {
     });
 
     expect(userOnDatabase).toBeTruthy();
+  });
+
+  test('should return 400 when payload is invalid', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/episodes')
+      .send({
+        title: 'Test Episode',
+        stack: 'Node.js',
+        error: 'Some error',
+      })
+      .expect(400);
+
+    expect(response.body.message).toEqual('Validation failed');
   });
 });
