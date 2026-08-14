@@ -1,10 +1,11 @@
 import 'dotenv/config';
 
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { execSync } from 'node:child_process';
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
 
 function generateUniqueDatabaseURL(schemaId: string) {
   if (!process.env.DATABASE_URL) {
@@ -25,7 +26,11 @@ beforeAll(async () => {
 
   process.env.DATABASE_URL = databaseURL;
 
-  execSync('pnpm prisma migrate deploy');
+  prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: databaseURL }),
+  });
+
+  execSync('npm exec prisma migrate deploy');
 });
 
 afterAll(async () => {
