@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../app.module';
-import { PrismaService } from '../prisma/prisma.service';
+import { AppModule } from '../../app.module';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('Fetch Recent Episodes (E2E)', () => {
   let app: INestApplication;

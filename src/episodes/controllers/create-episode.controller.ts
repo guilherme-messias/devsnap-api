@@ -1,7 +1,10 @@
 import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { createEpisodeSchema, type CreateEpisodeRequest } from './schemas/episode.type';
-import { ZodValidationPipe } from '../pipes/ZodValidationPipe';
+import { PrismaService } from '../../prisma/prisma.service';
+import {
+  createEpisodeSchema,
+  type CreateEpisodeRequest,
+} from './schemas/episode.type';
+import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
 
 @Controller('/episodes')
 export class CreateEpisodeController {

@@ -2,9 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma/prisma.service';
-import { CreateEpisodeController } from './controllers/create-episode.controller';
-import { FetchRecentEpisodesController } from './controllers/fetch-recent-episodes.controller';
+import { EpisodesModule } from './episodes/episodes.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -12,12 +11,10 @@ import { FetchRecentEpisodesController } from './controllers/fetch-recent-episod
       isGlobal: true,
       envFilePath: '.env',
     }),
+    EpisodesModule,
+    PrismaModule,
   ],
-  controllers: [
-    AppController,
-    CreateEpisodeController,
-    FetchRecentEpisodesController,
-  ],
-  providers: [AppService, PrismaService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

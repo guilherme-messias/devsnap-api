@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../app.module';
-import { PrismaService } from '../prisma/prisma.service';
+import { AppModule } from '../../app.module';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('Create Episode (E2E)', () => {
   let app: INestApplication;
