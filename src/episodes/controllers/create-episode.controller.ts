@@ -1,14 +1,14 @@
 import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import {
   createEpisodeSchema,
   type CreateEpisodeRequest,
 } from './schemas/episode.type';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { CreateEpisodeService } from '../services/create-episode.service';
 
 @Controller('/episodes')
 export class CreateEpisodeController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly createEpisodeService: CreateEpisodeService) {}
 
   @Post()
   @HttpCode(201)
@@ -16,15 +16,11 @@ export class CreateEpisodeController {
   async createEpisode(@Body() body: CreateEpisodeRequest) {
     const { title, stack, error, solution } = body;
 
-    const episode = await this.prisma.episode.create({
-      data: {
-        title,
-        stack,
-        error,
-        solution,
-      },
+    return this.createEpisodeService.createEpisode({
+      title,
+      stack,
+      error,
+      solution,
     });
-
-    return episode;
   }
 }
