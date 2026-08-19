@@ -1,7 +1,7 @@
 import { Controller, HttpCode, Get, Query } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import z from 'zod';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { FetchRecentEpisodesService } from '../services/fetch-recent-episodes.service';
 
 const pageQueryParamsSchema = z
   .string()
@@ -14,7 +14,9 @@ const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
 @Controller('/episodes')
 export class FetchRecentEpisodesController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly fetchRecentEpisodesService: FetchRecentEpisodesService,
+  ) {}
 
   @Get()
   @HttpCode(200)
@@ -23,12 +25,9 @@ export class FetchRecentEpisodesController {
   ) {
     const perPage = 1;
 
-    const episodes = await this.prisma.episode.findMany({
-      take: perPage,
-      skip: (page - 1) * perPage,
-      orderBy: {
-        created_at: 'desc',
-      },
+    const episodes = await this.fetchRecentEpisodesService.fetchRecentEpisodes({
+      page,
+      perPage,
     });
 
     return { episodes };
