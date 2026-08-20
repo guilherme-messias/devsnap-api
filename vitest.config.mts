@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 
 export default defineConfig({
   test: {
-    include: ['**/*.{test,spec}.?(c|m)[jt]s?(x)'],
-    exclude: ['**/*.e2e-spec.?(c|m)[jt]s?(x)'],
+    include: ['src/**/*.spec.ts'],
+    exclude: ['**/*.e2e-spec.ts'],
     globals: true,
     root: './',
   },
