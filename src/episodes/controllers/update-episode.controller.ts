@@ -2,7 +2,6 @@ import {
   Controller,
   HttpCode,
   Put,
-  UsePipes,
   Body,
   Param,
   NotFoundException,
@@ -13,6 +12,10 @@ import {
   type UpdateEpisodeRequest,
   updateEpisodeSchema,
 } from './schemas/episode.type';
+import z from 'zod';
+
+const idParamSchema = z.uuid();
+type IdParam = z.infer<typeof idParamSchema>;
 
 @Controller('/episodes')
 export class UpdateEpisodeController {
@@ -20,19 +23,11 @@ export class UpdateEpisodeController {
 
   @Put(':id')
   @HttpCode(200)
-  @UsePipes(new ZodValidationPipe(updateEpisodeSchema))
   async updateEpisode(
-    @Param('id') id: string,
-    @Body() body: UpdateEpisodeRequest,
+    @Param('id', new ZodValidationPipe(idParamSchema)) id: IdParam,
+    @Body(new ZodValidationPipe(updateEpisodeSchema)) body: UpdateEpisodeRequest,
   ) {
-    const { title, stack, error, solution } = body;
-
-    const updatedEpisode = await this.updateEpisodeService.updateEpisode(id, {
-      title,
-      stack,
-      error,
-      solution,
-    });
+    const updatedEpisode = await this.updateEpisodeService.updateEpisode(id, body);
 
     if (!updatedEpisode) {
       throw new NotFoundException(`Episode with ID ${id} not found`);

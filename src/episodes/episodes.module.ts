@@ -6,18 +6,22 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { CreateEpisodeService } from './services/create-episode.service';
 import { FetchEpisodeByIdService } from './services/fetch-episode-by-id.service';
 import { FetchRecentEpisodesService } from './services/fetch-recent-episodes.service';
+import { UpdateEpisodeController } from './controllers/update-episode.controller';
+import { UpdateEpisodeService } from './services/update-episode.service';
 
 @Module({
   controllers: [
     CreateEpisodeController,
     FetchRecentEpisodesController,
     FetchEpisodeByIdController,
+    UpdateEpisodeController,
   ],
   imports: [PrismaModule],
   providers: [
     CreateEpisodeService,
     FetchRecentEpisodesService,
     FetchEpisodeByIdService,
+    UpdateEpisodeService,
   ],
 })
 export class EpisodesModule {}
