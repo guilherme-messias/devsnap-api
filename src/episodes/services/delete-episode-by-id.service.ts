@@ -1,0 +1,15 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class DeleteEpisodeByIdService {
+  constructor(private prisma: PrismaService) {}
+
+  async deleteEpisodeById(id: string) {
+    const deletedEpisode = await this.prisma.episode.delete({
+      where: { id },
+    });
+
+    return deletedEpisode;
+  }
+}
