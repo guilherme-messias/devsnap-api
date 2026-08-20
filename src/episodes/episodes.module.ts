@@ -8,6 +8,8 @@ import { FetchEpisodeByIdService } from './services/fetch-episode-by-id.service'
 import { FetchRecentEpisodesService } from './services/fetch-recent-episodes.service';
 import { UpdateEpisodeController } from './controllers/update-episode.controller';
 import { UpdateEpisodeService } from './services/update-episode.service';
+import { DeleteEpisodeByIdController } from './controllers/delete-episode-by-id.controller';
+import { DeleteEpisodeByIdService } from './services/delete-episode-by-id.service';
 
 @Module({
   controllers: [
@@ -15,6 +17,7 @@ import { UpdateEpisodeService } from './services/update-episode.service';
     FetchRecentEpisodesController,
     FetchEpisodeByIdController,
     UpdateEpisodeController,
+    DeleteEpisodeByIdController,
   ],
   imports: [PrismaModule],
   providers: [
@@ -22,6 +25,7 @@ import { UpdateEpisodeService } from './services/update-episode.service';
     FetchRecentEpisodesService,
     FetchEpisodeByIdService,
     UpdateEpisodeService,
+    DeleteEpisodeByIdService,
   ],
 })
 export class EpisodesModule {}
