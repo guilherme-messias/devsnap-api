@@ -20,6 +20,11 @@ describe('Create Episode (E2E)', () => {
     await app.init();
   });
 
+  afterAll(async () => {
+    await prisma.episode.deleteMany({});
+    await app.close();
+  });
+
   test('should create an episode when payload is valid', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
