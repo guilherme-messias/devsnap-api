@@ -1,4 +1,4 @@
-import z from "zod";
+import z from 'zod';
 
 export const createEpisodeSchema = z.object({
   title: z.string(),
@@ -7,4 +7,7 @@ export const createEpisodeSchema = z.object({
   solution: z.string(),
 });
 
+export const updateEpisodeSchema = createEpisodeSchema.partial();
+
 export type CreateEpisodeRequest = z.infer<typeof createEpisodeSchema>;
+export type UpdateEpisodeRequest = z.infer<typeof updateEpisodeSchema>;
