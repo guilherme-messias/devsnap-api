@@ -12,7 +12,7 @@ import z from 'zod';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   updateEpisodeSchema,
-  type UpdateEpisodeDto,
+  UpdateEpisodeDto,
 } from './schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
