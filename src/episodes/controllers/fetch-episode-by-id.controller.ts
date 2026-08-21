@@ -33,6 +33,8 @@ export class FetchEpisodeByIdController {
   @ApiParam({
     name: 'id',
     description: 'Episode ID',
+    required: true,
+    type: String,
   })
   @ApiResponse({
     status: 200,

@@ -32,6 +32,8 @@ export class DeleteEpisodeByIdController {
   @ApiParam({
     name: 'id',
     description: 'Episode ID',
+    required: true,
+    type: String,
   })
   @ApiResponse({
     status: 204,
