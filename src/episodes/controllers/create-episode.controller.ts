@@ -23,7 +23,7 @@ export class CreateEpisodeController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation failed',
+    description: 'Invalid request body',
   })
   @UsePipes(new ZodValidationPipe(createEpisodeSchema))
   async createEpisode(@Body() body: CreateEpisodeRequest) {
