@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateEpisodeRequest } from '../controllers/schemas/episode.type';
+import { CreateEpisodeDto } from '../controllers/schemas/episode.type';
 
 @Injectable()
 export class CreateEpisodeService {
   constructor(private prisma: PrismaService) {}
 
-  async createEpisode(data: CreateEpisodeRequest) {
+  async createEpisode(data: CreateEpisodeDto) {
     const { title, stack, error, solution } = data;
 
     const episode = await this.prisma.episode.create({

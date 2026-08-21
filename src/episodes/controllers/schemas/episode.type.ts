@@ -1,3 +1,4 @@
+import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 export const createEpisodeSchema = z.object({
@@ -9,5 +10,6 @@ export const createEpisodeSchema = z.object({
 
 export const updateEpisodeSchema = createEpisodeSchema.partial();
 
-export type CreateEpisodeRequest = z.infer<typeof createEpisodeSchema>;
+export class CreateEpisodeDto extends createZodDto(createEpisodeSchema) {}
+
 export type UpdateEpisodeRequest = z.infer<typeof updateEpisodeSchema>;
