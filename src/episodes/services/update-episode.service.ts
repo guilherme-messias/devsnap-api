@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateEpisodeRequest } from '../controllers/schemas/request/update-episode.request.schema';
+import { UpdateEpisodeDto } from '../controllers/schemas/request/update-episode.request.schema';
 
 @Injectable()
 export class UpdateEpisodeService {
   constructor(private prisma: PrismaService) {}
 
-  async updateEpisode(id: string, data: UpdateEpisodeRequest) {
+  async updateEpisode(id: string, data: UpdateEpisodeDto) {
     const { count } = await this.prisma.episode.updateMany({
       where: { id },
       data,
