@@ -57,4 +57,16 @@ describe('Create Episode (E2E)', () => {
 
     expect(response.body.message).toEqual('Validation failed');
   });
+
+  test('should return 400 when title is empty', async () => {
+    await request(app.getHttpServer())
+      .post('/episodes')
+      .send({
+        title: '   ',
+        stack: 'Node.js',
+        error: 'Some error',
+        solution: 'Some solution',
+      })
+      .expect(400);
+  });
 });

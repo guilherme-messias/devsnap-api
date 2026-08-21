@@ -1,6 +1,6 @@
-import { INestApplication } from "@nestjs/common";
-import { PrismaService } from "../src/prisma/prisma.service";
-import { AppModule } from "../src/app.module";
+import { INestApplication } from '@nestjs/common';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { AppModule } from '../src/app.module';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 
@@ -89,5 +89,23 @@ describe('Update Episode (E2E)', () => {
       'message',
       `Episode with ID ${nonExistingId} not found`,
     );
+  });
+
+  test('should return 400 when title is empty', async () => {
+    const episode = await prisma.episode.create({
+      data: {
+        title: 'Test Episode',
+        stack: 'Node.js',
+        error: 'Some error',
+        solution: 'Some solution',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .put(`/episodes/${episode.id}`)
+      .send({
+        title: '   ',
+      })
+      .expect(400);
   });
 });
