@@ -12,14 +12,14 @@ datasource db {
 }
 
 model Episode {
-  id         String   @id @default(uuid())
-  title      String
-  stack      String
-  error      String
-  solution   String
-  reviewed   Boolean  @default(false)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  stack     String
+  error     String
+  solution  String
+  reviewed  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("episodes")
 }

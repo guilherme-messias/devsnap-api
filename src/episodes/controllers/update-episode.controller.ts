@@ -12,7 +12,7 @@ import z from 'zod';
 import {
   updateEpisodeSchema,
   type UpdateEpisodeRequest,
-} from './schemas/request/update-episode.schema';
+} from './schemas/request/update-episode.request.schema';
 
 const idParamSchema = z.uuid();
 type IdParam = z.infer<typeof idParamSchema>;

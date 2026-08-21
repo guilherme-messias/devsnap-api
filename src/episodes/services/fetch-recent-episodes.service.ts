@@ -12,7 +12,7 @@ export class FetchRecentEpisodesService {
       skip: (page - 1) * perPage,
       take: perPage,
       orderBy: {
-        created_at: 'desc',
+        createdAt: 'desc',
       },
     });
 
