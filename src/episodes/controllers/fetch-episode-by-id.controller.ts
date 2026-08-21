@@ -11,6 +11,7 @@ import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
+import { FetchEpisodeResponseDto } from './schemas/response/fetch-episode.response.schema';
 
 const idParamSchema = z.uuid();
 
@@ -36,6 +37,7 @@ export class FetchEpisodeByIdController {
   @ApiResponse({
     status: 200,
     description: 'The episode has been successfully fetched.',
+    type: FetchEpisodeResponseDto,
   })
   @ApiResponse({
     status: 400,
