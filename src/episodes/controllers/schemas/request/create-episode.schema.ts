@@ -8,8 +8,4 @@ export const createEpisodeSchema = z.object({
   solution: z.string(),
 });
 
-export const updateEpisodeSchema = createEpisodeSchema.partial();
-
 export class CreateEpisodeDto extends createZodDto(createEpisodeSchema) {}
-
-export type UpdateEpisodeRequest = z.infer<typeof updateEpisodeSchema>;

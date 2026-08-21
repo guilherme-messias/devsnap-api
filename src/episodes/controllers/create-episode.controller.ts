@@ -1,5 +1,8 @@
 import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
-import { CreateEpisodeDto, createEpisodeSchema } from './schemas/episode.type';
+import {
+  CreateEpisodeDto,
+  createEpisodeSchema,
+} from './schemas/request/create-episode.schema';
 import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
 import { CreateEpisodeService } from '../services/create-episode.service';
 import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
