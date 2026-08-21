@@ -3,7 +3,6 @@ import {
   HttpCode,
   NotFoundException,
   Param,
-  ParseBoolPipe,
   Patch,
 } from '@nestjs/common';
 import { MarkEpisodeAsReviewedService } from '../services/mark-episode-as-reviewed.service';
@@ -11,13 +10,20 @@ import { ApiParam, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
 import { MarkEpisodeAsReviewedResponseDto } from './schemas/response/mark-episode-as-reviewed.response.schema';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
 import z from 'zod';
 
 const idParamSchema = z.uuid();
 
-const paramValidationPipe = new ZodValidationPipe(idParamSchema);
+const reviewedParamSchema = z
+  .enum(['true', 'false'])
+  .transform((value) => value === 'true');
+
+const idParamValidationPipe = new ZodValidationPipe(idParamSchema);
+const reviewedParamValidationPipe = new ZodValidationPipe(reviewedParamSchema);
+
 type IdParam = z.infer<typeof idParamSchema>;
+type ReviewedParam = z.infer<typeof reviewedParamSchema>;
 @ApiTags('episodes')
 @Controller('/episodes')
 export class MarkEpisodeAsReviewedController {
@@ -40,7 +46,8 @@ export class MarkEpisodeAsReviewedController {
     name: 'reviewed',
     description: 'Whether the episode is reviewed or not',
     required: true,
-    type: Boolean,
+    type: 'string',
+    enum: ['true', 'false'],
   })
   @ApiResponse({
     status: 200,
@@ -50,7 +57,7 @@ export class MarkEpisodeAsReviewedController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid ID parameter',
+    description: 'Invalid ID or reviewed parameter',
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
@@ -59,8 +66,8 @@ export class MarkEpisodeAsReviewedController {
     type: NotFoundErrorResponseDto,
   })
   async markEpisodeAsReviewed(
-    @Param('id', paramValidationPipe) id: IdParam,
-    @Param('reviewed', ParseBoolPipe) reviewed: boolean,
+    @Param('id', idParamValidationPipe) id: IdParam,
+    @Param('reviewed', reviewedParamValidationPipe) reviewed: ReviewedParam,
   ) {
     const updatedEpisode =
       await this.markEpisodeAsReviewedService.markEpisodeAsReviewed(
