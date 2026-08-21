@@ -73,6 +73,30 @@ describe('Fetch Recent Episodes (E2E)', () => {
     expect(response.body.episodes[0].title).toBe('Another Test Episode');
   });
 
+  test('should return episodes in expected response shape', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/episodes?page=1')
+      .expect(200);
+
+    expect(response.body).toHaveProperty('episodes');
+    expect(response.body.episodes[0]).toHaveProperty('id');
+    expect(response.body.episodes[0]).toHaveProperty('title');
+    expect(response.body.episodes[0]).toHaveProperty('stack');
+    expect(response.body.episodes[0]).toHaveProperty('error');
+    expect(response.body.episodes[0]).toHaveProperty('solution');
+  });
+
+  test('should return 200 and an empty array when there are no episodes', async () => {
+    await prisma.episode.deleteMany({});
+
+    const response = await request(app.getHttpServer())
+      .get('/episodes?page=1')
+      .expect(200);
+
+    expect(response.body.episodes).toBeInstanceOf(Array);
+    expect(response.body.episodes.length).toBe(0);
+  });
+
   test('should return 400 when page is less than 1', async () => {
     const response = await request(app.getHttpServer())
       .get('/episodes?page=0')
@@ -104,18 +128,5 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
     expect(response.body.episodes).toBeInstanceOf(Array);
     expect(response.body.episodes.length).toBe(0);
-  });
-
-  test('should return episodes in expected response shape', async () => {
-    const response = await request(app.getHttpServer())
-      .get('/episodes?page=1')
-      .expect(200);
-
-    expect(response.body).toHaveProperty('episodes');
-    expect(response.body.episodes[0]).toHaveProperty('id');
-    expect(response.body.episodes[0]).toHaveProperty('title');
-    expect(response.body.episodes[0]).toHaveProperty('stack');
-    expect(response.body.episodes[0]).toHaveProperty('error');
-    expect(response.body.episodes[0]).toHaveProperty('solution');
   });
 });
