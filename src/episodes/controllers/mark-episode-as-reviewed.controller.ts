@@ -34,7 +34,7 @@ export class MarkEpisodeAsReviewedController {
     name: 'id',
     description: 'The ID of the episode to mark as reviewed or unreviewed',
     required: true,
-    type: String,
+    format: 'uuid',
   })
   @ApiParam({
     name: 'reviewed',

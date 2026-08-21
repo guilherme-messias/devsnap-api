@@ -35,7 +35,7 @@ export class UpdateEpisodeController {
     name: 'id',
     description: 'The ID of the episode to update',
     required: true,
-    type: String,
+    format: 'uuid',
   })
   @ApiResponse({
     status: 200,

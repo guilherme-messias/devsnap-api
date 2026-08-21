@@ -34,7 +34,7 @@ export class FetchEpisodeByIdController {
     name: 'id',
     description: 'Episode ID',
     required: true,
-    type: String,
+    format: 'uuid',
   })
   @ApiResponse({
     status: 200,

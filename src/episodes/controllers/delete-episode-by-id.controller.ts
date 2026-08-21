@@ -33,7 +33,7 @@ export class DeleteEpisodeByIdController {
     name: 'id',
     description: 'Episode ID',
     required: true,
-    type: String,
+    format: 'uuid',
   })
   @ApiResponse({
     status: 204,
