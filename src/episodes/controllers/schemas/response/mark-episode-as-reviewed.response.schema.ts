@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-export const fetchEpisodeResponseSchema = z.object({
+export const markEpisodeAsReviewedResponseSchema = z.object({
   episode: z.object({
     id: z.uuid(),
     title: z.string(),
@@ -14,6 +14,6 @@ export const fetchEpisodeResponseSchema = z.object({
   }),
 });
 
-export class FetchEpisodeResponseDto extends createZodDto(
-  fetchEpisodeResponseSchema,
+export class MarkEpisodeAsReviewedResponseDto extends createZodDto(
+  markEpisodeAsReviewedResponseSchema,
 ) {}

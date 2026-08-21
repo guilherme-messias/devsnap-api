@@ -42,7 +42,7 @@ export class FetchRecentEpisodesController {
     status: 200,
     description:
       'Returns recent episodes. The episodes array is empty when no episodes are found.',
-    type: [FetchRecentEpisodesResponseDto],
+    type: FetchRecentEpisodesResponseDto,
   })
   @ApiResponse({
     status: 400,
