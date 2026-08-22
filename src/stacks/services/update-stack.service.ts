@@ -18,7 +18,6 @@ export class UpdateStackService {
 
     return this.prisma.stack.findUnique({
       where: { id },
-      include: { episodes: true },
     });
   }
 }
