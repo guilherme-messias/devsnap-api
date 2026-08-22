@@ -8,6 +8,8 @@ import { FetchStackByIdController } from './controllers/fetch-stack-by-id.contro
 import { FetchStackByIdService } from './services/fetch-stack-by-id.service';
 import { FetchRecentStacksController } from './controllers/fetch-recent-stacks.controller';
 import { FetchRecentStacksService } from './services/fetch-recent-stacks.service';
+import { UpdateStackController } from './controllers/update-stack.controller';
+import { UpdateStackService } from './services/update-stack.service';
 
 @Module({
   controllers: [
@@ -15,13 +17,15 @@ import { FetchRecentStacksService } from './services/fetch-recent-stacks.service
     DeleteStackByIdController,
     FetchStackByIdController,
     FetchRecentStacksController,
+    UpdateStackController,
   ],
   imports: [PrismaModule],
   providers: [
     CreateStackService,
     DeleteStackByIdService,
     FetchStackByIdService,
-    FetchRecentStacksService
+    FetchRecentStacksService,
+    UpdateStackService,
   ],
 })
 export class StacksModule {}
