@@ -3,7 +3,7 @@ import z from 'zod';
 
 export const updateStackSchema = z
   .object({
-    title: z.string().trim().min(1).max(150),
+    name: z.string().trim().min(1).max(150),
   })
   .partial();
 
