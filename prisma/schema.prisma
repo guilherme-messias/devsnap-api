@@ -23,3 +23,15 @@ model Episode {
 
   @@map("episodes")
 }
+
+model Stack {
+  id                   String   @id @default(uuid())
+  name                 String
+  episodeCount         Int      @default(0) @map("episode_count")
+  pendingEpisodeCount  Int      @default(0) @map("pending_episode_count")
+  reviewedEpisodeCount Int      @default(0) @map("reviewed_episode_count")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@map("stacks")
+}
