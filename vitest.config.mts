@@ -1,6 +1,5 @@
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
-import { resolve } from 'node:path';
 
 export default defineConfig({
   test: {
@@ -10,12 +9,11 @@ export default defineConfig({
     root: './',
   },
   plugins: [
-    tsconfigPaths(),
     swc.vite({
       module: { type: 'es6' },
     }),
   ],
+  resolve: {
+    tsconfigPaths: true,
+  },
 });
-function tsconfigPaths(): import('vite').PluginOption {
-  throw new Error('Function not implemented.');
-}
