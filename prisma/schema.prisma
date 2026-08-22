@@ -12,11 +12,14 @@ datasource db {
 }
 
 model Episode {
-  id        String   @id @default(uuid())
-  title     String
-  stack     String
-  error     String
-  solution  String
+  id       String @id @default(uuid())
+  title    String
+  error    String
+  solution String
+
+  stackId String @map("stack_id")
+  stack   Stack  @relation(fields: [stackId], references: [id])
+
   reviewed  Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -25,13 +28,12 @@ model Episode {
 }
 
 model Stack {
-  id                   String   @id @default(uuid())
-  name                 String
-  episodeCount         Int      @default(0) @map("episode_count")
-  pendingEpisodeCount  Int      @default(0) @map("pending_episode_count")
-  reviewedEpisodeCount Int      @default(0) @map("reviewed_episode_count")
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  episodes Episode[]
 
   @@map("stacks")
 }
