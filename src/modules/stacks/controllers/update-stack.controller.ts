@@ -9,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import z from 'zod';
-import { NotFoundErrorResponseDto } from '../../episodes/controllers/schemas/response/not-found-error.response.schema';
+import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { UpdateStackService } from '../services/update-stack.service';
 import {

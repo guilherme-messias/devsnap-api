@@ -15,7 +15,7 @@ import {
   UpdateEpisodeDto,
 } from './schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
-import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
+import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from './schemas/response/update-episode-response.schema';
 
 const idParamSchema = z.uuid();

@@ -10,7 +10,7 @@ import z from 'zod';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
+import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 
 const idParamSchema = z.uuid();
 

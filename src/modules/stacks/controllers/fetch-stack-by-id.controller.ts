@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { FetchStackResponseDto } from './schemas/response/fetch-stack.response.schema';
 import z from 'zod';
-import { NotFoundErrorResponseDto } from '../../episodes/controllers/schemas/response/not-found-error.response.schema';
+import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { FetchStackByIdService } from '../services/fetch-stack-by-id.service';
 

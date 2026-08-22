@@ -1,9 +1,11 @@
-import { PrismaModule } from "@infrastructure/prisma/prisma.module";
-import { Module } from "@nestjs/common";
+import { PrismaModule } from '@infrastructure/prisma/prisma.module';
+import { Module } from '@nestjs/common';
+import { CreateAnnotationsController } from './controllers/create-annotations.service';
+import { CreateAnnotationsService } from './services/create-annotations.service';
 
 @Module({
-  controllers: [],
+  controllers: [CreateAnnotationsController],
   imports: [PrismaModule],
-  providers: [],
+  providers: [CreateAnnotationsService],
 })
 export class AnnotationsModule {}

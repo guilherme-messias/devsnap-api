@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { MarkEpisodeAsReviewedService } from '../services/mark-episode-as-reviewed.service';
 import { ApiParam, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
+import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { MarkEpisodeAsReviewedResponseDto } from './schemas/response/mark-episode-as-reviewed.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
