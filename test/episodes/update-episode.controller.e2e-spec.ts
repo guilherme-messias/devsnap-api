@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { AppModule } from '../src/app.module';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 
 describe('Update Episode (E2E)', () => {
   let app: INestApplication;

@@ -2,12 +2,12 @@ import { Body, Controller, HttpCode, Post, UsePipes } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateStackService } from '../services/create-stack.service';
 import { CreateStackResponseDto } from './schemas/response/create-stack.response.schema';
-import { ZodValidationPipe } from 'nestjs-zod';
 import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
 import {
   createStackSchema,
   CreateStackDto,
 } from './schemas/request/create-stack.request';
+import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
 
 @ApiTags('stacks')
 @Controller('/stacks')

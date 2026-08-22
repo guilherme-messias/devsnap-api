@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { Test } from '@nestjs/testing';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { AppModule } from '../src/app.module';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 
 describe('Create Episode (E2E)', () => {
   let app: INestApplication;
@@ -68,7 +68,7 @@ describe('Create Episode (E2E)', () => {
   });
 
   test('should return 400 when title is empty', async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post('/episodes')
       .send({
         title: '   ',
@@ -77,5 +77,7 @@ describe('Create Episode (E2E)', () => {
         solution: 'Some solution',
       })
       .expect(400);
+
+    expect(response.body.message).toEqual('Validation failed');
   });
 });
