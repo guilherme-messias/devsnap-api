@@ -20,6 +20,8 @@ model Episode {
   stackId String @map("stack_id")
   stack   Stack  @relation(fields: [stackId], references: [id], onDelete: Cascade)
 
+  annotations Annotation[]
+
   reviewed  Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -27,7 +29,7 @@ model Episode {
   @@map("episodes")
 }
 
- model Stack {
+model Stack {
   id        String   @id @default(uuid())
   name      String
   createdAt DateTime @default(now()) @map("created_at")
@@ -36,4 +38,15 @@ model Episode {
   episodes Episode[]
 
   @@map("stacks")
+}
+
+model Annotation {
+  id        String    @id @default(uuid())
+  text      String
+  episodeId String    @map("episode_id")
+  episode   Episode   @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @map("updated_at")
+
+  @@map("annotations")
 }
