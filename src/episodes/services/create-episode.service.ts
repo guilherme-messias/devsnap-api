@@ -16,7 +16,7 @@ export class CreateEpisodeService {
         error,
         solution,
       },
-      include: { stack: true },
+      include: { stack: true, annotations: true },
     });
 
     return episode;

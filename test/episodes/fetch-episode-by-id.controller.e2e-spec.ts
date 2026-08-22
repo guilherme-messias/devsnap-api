@@ -37,6 +37,7 @@ describe('Fetch Episode By Id (E2E)', () => {
         stackId,
         error: 'Some error',
         solution: 'Some solution',
+        annotations: { create: [{ text: 'Investigation note' }] },
       },
     });
 
@@ -54,6 +55,12 @@ describe('Fetch Episode By Id (E2E)', () => {
     });
     expect(response.body.episode).toHaveProperty('error', episode.error);
     expect(response.body.episode).toHaveProperty('solution', episode.solution);
+    expect(response.body.episode.annotations).toEqual([
+      expect.objectContaining({
+        text: 'Investigation note',
+        episodeId: episode.id,
+      }),
+    ]);
   });
 
   test('should return 404 for non-existing episode id', async () => {

@@ -1,6 +1,14 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+export const annotationResponseSchema = z.object({
+  id: z.uuid(),
+  text: z.string(),
+  episodeId: z.uuid(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime().nullable(),
+});
+
 export const episodeResponseSchema = z.object({
   id: z.uuid(),
   title: z.string(),
@@ -13,6 +21,7 @@ export const episodeResponseSchema = z.object({
   }),
   error: z.string(),
   solution: z.string(),
+  annotations: z.array(annotationResponseSchema),
   reviewed: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),

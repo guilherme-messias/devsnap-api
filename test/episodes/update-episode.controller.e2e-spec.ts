@@ -42,6 +42,7 @@ describe('Update Episode (E2E)', () => {
         stackId: sourceStackId,
         error: 'Some error',
         solution: 'Some solution',
+        annotations: { create: [{ text: 'Existing note' }] },
       },
     });
 
@@ -59,6 +60,12 @@ describe('Update Episode (E2E)', () => {
     expect(response.body.episode.title).toEqual('Updated Episode');
     expect(response.body.episode.error).toEqual('Updated error');
     expect(response.body.episode.solution).toEqual('Updated solution');
+    expect(response.body.episode.annotations).toEqual([
+      expect.objectContaining({
+        text: 'Existing note',
+        episodeId: episode.id,
+      }),
+    ]);
     expect(response.body.episode.stackId).toEqual(targetStackId);
     expect(response.body.episode.stack).toMatchObject({
       id: targetStackId,
@@ -69,6 +76,12 @@ describe('Update Episode (E2E)', () => {
       where: { id: episode.id },
     });
     expect(episodeOnDatabase?.stackId).toEqual(targetStackId);
+
+    const annotationsOnDatabase = await prisma.annotation.findMany({
+      where: { episodeId: episode.id },
+    });
+    expect(annotationsOnDatabase).toHaveLength(1);
+    expect(annotationsOnDatabase[0].text).toEqual('Existing note');
   });
 
   test('should return 400 when payload is invalid', async () => {

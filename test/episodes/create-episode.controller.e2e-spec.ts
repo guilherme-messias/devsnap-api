@@ -51,6 +51,7 @@ describe('Create Episode (E2E)', () => {
     expect(response.body).toMatchObject({
       stackId,
       stack: { id: stackId, name: 'Node.js' },
+      annotations: [],
     });
   });
 

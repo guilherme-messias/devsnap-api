@@ -18,7 +18,7 @@ export class UpdateEpisodeService {
 
     return this.prisma.episode.findUnique({
       where: { id },
-      include: { stack: true },
+      include: { stack: true, annotations: true },
     });
   }
 }
