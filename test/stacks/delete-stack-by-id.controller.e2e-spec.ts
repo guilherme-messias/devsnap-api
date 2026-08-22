@@ -38,6 +38,32 @@ describe('Delete Stack By Id (E2E)', () => {
     expect(deletedStack).toBeNull();
   });
 
+  test('should delete the stack and its associated episodes', async () => {
+    const stack = await prisma.stack.create({ data: { name: 'React' } });
+    const episode = await prisma.episode.create({
+      data: {
+        title: 'React Episode',
+        error: 'React Error',
+        solution: 'React Solution',
+        stackId: stack.id,
+      },
+    });
+
+    await request(app.getHttpServer())
+      .delete(`/stacks/${stack.id}`)
+      .expect(204);
+
+    const deletedStack = await prisma.stack.findUnique({
+      where: { id: stack.id },
+    });
+    expect(deletedStack).toBeNull();
+
+    const deletedEpisode = await prisma.episode.findUnique({
+      where: { id: episode.id },
+    });
+    expect(deletedEpisode).toBeNull();
+  });
+
   test('should return 404 for non-existing stack id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
