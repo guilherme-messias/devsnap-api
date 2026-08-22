@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import { FetchEpisodeByIdService } from '../services/fetch-episode-by-id.service';
 import z from 'zod';
-import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
 import { FetchEpisodeResponseDto } from './schemas/response/fetch-episode.response.schema';
 

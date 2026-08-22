@@ -1,5 +1,5 @@
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import {
   Controller,
   Patch,
@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import z from 'zod';
 import { NotFoundErrorResponseDto } from '../../episodes/controllers/schemas/response/not-found-error.response.schema';
-import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { UpdateStackService } from '../services/update-stack.service';
 import {
   updateStackSchema,

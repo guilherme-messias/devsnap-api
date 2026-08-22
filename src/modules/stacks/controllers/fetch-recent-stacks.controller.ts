@@ -1,8 +1,8 @@
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import z from 'zod';
-import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { FetchRecentStacksService } from '../services/fetch-recent-stacks.service';
 import { FetchRecentStacksResponseDto } from './schemas/response/fetch-recent-stacks.schema';
 
