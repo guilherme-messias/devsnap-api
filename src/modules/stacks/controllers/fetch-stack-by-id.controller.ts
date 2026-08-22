@@ -1,5 +1,5 @@
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
 import {
   Controller,
   Get,
@@ -10,7 +10,7 @@ import {
 import { FetchStackResponseDto } from './schemas/response/fetch-stack.response.schema';
 import z from 'zod';
 import { NotFoundErrorResponseDto } from '../../episodes/controllers/schemas/response/not-found-error.response.schema';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
 import { FetchStackByIdService } from '../services/fetch-stack-by-id.service';
 
 const idParamSchema = z.uuid();

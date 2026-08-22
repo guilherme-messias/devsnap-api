@@ -8,8 +8,8 @@ import {
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import z from 'zod';
 import { NotFoundErrorResponseDto } from '../../episodes/controllers/schemas/response/not-found-error.response.schema';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
 import { DeleteStackByIdService } from '../services/delete-stack-by-id.service';
 
 const idParamSchema = z.uuid();

@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { DeleteEpisodeByIdService } from '../services/delete-episode-by-id.service';
 import z from 'zod';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
 

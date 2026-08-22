@@ -1,9 +1,9 @@
 import { Controller, HttpCode, Get, Query } from '@nestjs/common';
 import z from 'zod';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
 import { FetchRecentEpisodesService } from '../services/fetch-recent-episodes.service';
 import { ApiQuery, ApiResponse, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
 import { FetchRecentEpisodesResponseDto } from './schemas/response/fetch-recent-episodes.schema';
 
 const pageQueryParamsSchema = z

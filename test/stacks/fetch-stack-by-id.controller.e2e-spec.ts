@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '../../src/infrastructure/prisma/prisma.service';
 
 describe('Fetch Stack By Id (E2E)', () => {
   let app: INestApplication;

@@ -7,14 +7,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateEpisodeService } from '../services/update-episode.service';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
 import z from 'zod';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   updateEpisodeSchema,
   UpdateEpisodeDto,
 } from './schemas/request/update-episode.request.schema';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
 import { NotFoundErrorResponseDto } from './schemas/response/not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from './schemas/response/update-episode-response.schema';
 

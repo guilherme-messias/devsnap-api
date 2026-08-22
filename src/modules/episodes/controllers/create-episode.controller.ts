@@ -3,11 +3,11 @@ import {
   CreateEpisodeDto,
   createEpisodeSchema,
 } from './schemas/request/create-episode.request.schema';
-import { ZodValidationPipe } from '../../pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '../../../shared/pipes/ZodValidationPipe';
 import { CreateEpisodeService } from '../services/create-episode.service';
 import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
 import { CreateEpisodeResponseDto } from './schemas/response/create-episode.response.schema';
-import { ValidationErrorResponseDto } from '../../http/schemas/response/validation-error.response.schema';
+import { ValidationErrorResponseDto } from '../../../shared/http/schemas/response/validation-error.response.schema';
 
 @ApiTags('episodes')
 @Controller('/episodes')

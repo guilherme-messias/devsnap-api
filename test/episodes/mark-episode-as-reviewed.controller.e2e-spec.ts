@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '../../src/infrastructure/prisma/prisma.service';
 import request from 'supertest';
 
 describe('Mark Episode as Reviewed (E2E)', () => {
