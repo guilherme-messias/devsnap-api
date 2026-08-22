@@ -15,6 +15,7 @@ export class MarkEpisodeAsReviewedService {
 
     return this.prisma.episode.findUnique({
       where: { id },
+      include: { stack: true },
     });
   }
 }

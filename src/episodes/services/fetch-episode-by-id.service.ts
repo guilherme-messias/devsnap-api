@@ -8,6 +8,7 @@ export class FetchEpisodeByIdService {
   async fetchEpisodeById(id: string) {
     const episode = await this.prisma.episode.findUnique({
       where: { id },
+      include: { stack: true },
     });
 
     return episode;

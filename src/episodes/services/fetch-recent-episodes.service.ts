@@ -14,6 +14,7 @@ export class FetchRecentEpisodesService {
       orderBy: {
         createdAt: 'desc',
       },
+      include: { stack: true },
     });
 
     return episodes;

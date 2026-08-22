@@ -7,15 +7,16 @@ export class CreateEpisodeService {
   constructor(private prisma: PrismaService) {}
 
   async createEpisode(data: CreateEpisodeDto) {
-    const { title, stack, error, solution } = data;
+    const { title, stackId, error, solution } = data;
 
     const episode = await this.prisma.episode.create({
       data: {
         title,
-        stack,
+        stackId,
         error,
         solution,
       },
+      include: { stack: true },
     });
 
     return episode;

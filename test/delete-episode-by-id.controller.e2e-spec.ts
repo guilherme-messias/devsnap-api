@@ -7,6 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 describe('Delete Episode By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let stackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -18,10 +19,14 @@ describe('Delete Episode By Id (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -29,7 +34,7 @@ describe('Delete Episode By Id (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       },

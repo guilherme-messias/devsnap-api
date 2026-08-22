@@ -7,6 +7,7 @@ import request from 'supertest';
 describe('Mark Episode as Reviewed (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let stackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -18,10 +19,14 @@ describe('Mark Episode as Reviewed (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -29,7 +34,7 @@ describe('Mark Episode as Reviewed (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -41,6 +46,10 @@ describe('Mark Episode as Reviewed (E2E)', () => {
 
     expect(response.body).toHaveProperty('episode');
     expect(response.body.episode.reviewed).toEqual(true);
+    expect(response.body.episode.stack).toMatchObject({
+      id: stackId,
+      name: 'Node.js',
+    });
   });
 
   test('should return 404 when episode does not exist', async () => {
@@ -61,7 +70,7 @@ describe('Mark Episode as Reviewed (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -71,8 +80,6 @@ describe('Mark Episode as Reviewed (E2E)', () => {
       .patch(`/episodes/${episode.id}/reviewed/invalid`)
       .expect(400);
 
-    expect(response.body.message).toEqual(
-      'Validation failed (boolean string is expected)',
-    );
+    expect(response.body.message).toEqual('Validation failed');
   });
 });

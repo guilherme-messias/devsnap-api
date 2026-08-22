@@ -31,11 +31,11 @@ export class CreateEpisodeController {
   })
   @UsePipes(new ZodValidationPipe(createEpisodeSchema))
   async createEpisode(@Body() body: CreateEpisodeDto) {
-    const { title, stack, error, solution } = body;
+    const { title, stackId, error, solution } = body;
 
     return this.createEpisodeService.createEpisode({
       title,
-      stack,
+      stackId,
       error,
       solution,
     });

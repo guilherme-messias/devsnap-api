@@ -7,6 +7,8 @@ import request from 'supertest';
 describe('Update Episode (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let sourceStackId: string;
+  let targetStackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -18,10 +20,18 @@ describe('Update Episode (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const [sourceStack, targetStack] = await Promise.all([
+      prisma.stack.create({ data: { name: 'Node.js' } }),
+      prisma.stack.create({ data: { name: 'TypeScript' } }),
+    ]);
+    sourceStackId = sourceStack.id;
+    targetStackId = targetStack.id;
   });
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -29,7 +39,7 @@ describe('Update Episode (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId: sourceStackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -39,7 +49,7 @@ describe('Update Episode (E2E)', () => {
       .put(`/episodes/${episode.id}`)
       .send({
         title: 'Updated Episode',
-        stack: 'Node.js',
+        stackId: targetStackId,
         error: 'Updated error',
         solution: 'Updated solution',
       })
@@ -49,13 +59,23 @@ describe('Update Episode (E2E)', () => {
     expect(response.body.episode.title).toEqual('Updated Episode');
     expect(response.body.episode.error).toEqual('Updated error');
     expect(response.body.episode.solution).toEqual('Updated solution');
+    expect(response.body.episode.stackId).toEqual(targetStackId);
+    expect(response.body.episode.stack).toMatchObject({
+      id: targetStackId,
+      name: 'TypeScript',
+    });
+
+    const episodeOnDatabase = await prisma.episode.findUnique({
+      where: { id: episode.id },
+    });
+    expect(episodeOnDatabase?.stackId).toEqual(targetStackId);
   });
 
   test('should return 400 when payload is invalid', async () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId: sourceStackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -78,7 +98,7 @@ describe('Update Episode (E2E)', () => {
       .put(`/episodes/${nonExistingId}`)
       .send({
         title: 'Updated Episode',
-        stack: 'Node.js',
+        stackId: targetStackId,
         error: 'Updated error',
         solution: 'Updated solution',
       })
@@ -95,7 +115,7 @@ describe('Update Episode (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId: sourceStackId,
         error: 'Some error',
         solution: 'Some solution',
       },

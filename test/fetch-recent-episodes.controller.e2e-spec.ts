@@ -7,6 +7,7 @@ import { PrismaService } from '../src/prisma/prisma.service';
 describe('Fetch Recent Episodes (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let stackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -19,10 +20,13 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
     await app.init();
 
+    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    stackId = stack.id;
+
     await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -31,7 +35,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
     await prisma.episode.create({
       data: {
         title: 'Another Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some other error',
         solution: 'Some other solution',
       },
@@ -40,6 +44,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -82,6 +87,11 @@ describe('Fetch Recent Episodes (E2E)', () => {
     expect(response.body.episodes[0]).toHaveProperty('id');
     expect(response.body.episodes[0]).toHaveProperty('title');
     expect(response.body.episodes[0]).toHaveProperty('stack');
+    expect(response.body.episodes[0]).toHaveProperty('stackId', stackId);
+    expect(response.body.episodes[0].stack).toMatchObject({
+      id: stackId,
+      name: 'Node.js',
+    });
     expect(response.body.episodes[0]).toHaveProperty('error');
     expect(response.body.episodes[0]).toHaveProperty('solution');
   });

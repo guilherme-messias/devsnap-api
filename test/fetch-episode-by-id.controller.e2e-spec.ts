@@ -7,6 +7,7 @@ import { Test } from '@nestjs/testing';
 describe('Fetch Episode By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let stackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -18,10 +19,14 @@ describe('Fetch Episode By Id (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -29,7 +34,7 @@ describe('Fetch Episode By Id (E2E)', () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       },
@@ -42,7 +47,11 @@ describe('Fetch Episode By Id (E2E)', () => {
     expect(response.body).toHaveProperty('episode');
     expect(response.body.episode).toHaveProperty('id', episode.id);
     expect(response.body.episode).toHaveProperty('title', episode.title);
-    expect(response.body.episode).toHaveProperty('stack', episode.stack);
+    expect(response.body.episode).toHaveProperty('stackId', stackId);
+    expect(response.body.episode.stack).toMatchObject({
+      id: stackId,
+      name: 'Node.js',
+    });
     expect(response.body.episode).toHaveProperty('error', episode.error);
     expect(response.body.episode).toHaveProperty('solution', episode.solution);
   });

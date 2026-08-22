@@ -7,6 +7,7 @@ import { AppModule } from '../src/app.module';
 describe('Create Episode (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let stackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -18,10 +19,14 @@ describe('Create Episode (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
@@ -30,7 +35,7 @@ describe('Create Episode (E2E)', () => {
       .post('/episodes')
       .send({
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       })
@@ -43,6 +48,10 @@ describe('Create Episode (E2E)', () => {
     });
 
     expect(userOnDatabase).toBeTruthy();
+    expect(response.body).toMatchObject({
+      stackId,
+      stack: { id: stackId, name: 'Node.js' },
+    });
   });
 
   test('should return 400 when payload is invalid', async () => {
@@ -50,7 +59,7 @@ describe('Create Episode (E2E)', () => {
       .post('/episodes')
       .send({
         title: 'Test Episode',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
       })
       .expect(400);
@@ -63,7 +72,7 @@ describe('Create Episode (E2E)', () => {
       .post('/episodes')
       .send({
         title: '   ',
-        stack: 'Node.js',
+        stackId,
         error: 'Some error',
         solution: 'Some solution',
       })

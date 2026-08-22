@@ -3,7 +3,9 @@ import { PrismaService } from "../../prisma/prisma.service";
 
 @Injectable()
 export class CreateStackService {
-  constructor(private prisma: PrismaService) { }
-  
+  constructor(private prisma: PrismaService) {}
+
   async createStack(data: { name: string }) {
+    void data;
+  }
 }

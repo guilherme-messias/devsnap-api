@@ -1,17 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
+import { episodeResponseSchema } from './create-episode.response.schema';
 
 export const markEpisodeAsReviewedResponseSchema = z.object({
-  episode: z.object({
-    id: z.uuid(),
-    title: z.string(),
-    stack: z.string(),
-    error: z.string(),
-    solution: z.string(),
-    reviewed: z.boolean(),
-    createdAt: z.iso.datetime(),
-    updatedAt: z.iso.datetime(),
-  }),
+  episode: episodeResponseSchema,
 });
 
 export class MarkEpisodeAsReviewedResponseDto extends createZodDto(
