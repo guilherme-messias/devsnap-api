@@ -4,7 +4,7 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
-describe('Delete Episode By Id (E2E)', () => {
+describe('Delete Stack By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
@@ -25,50 +25,38 @@ describe('Delete Episode By Id (E2E)', () => {
   });
 
   afterAll(async () => {
-    await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
     await app.close();
   });
 
-  test('should delete the episode by id', async () => {
-    const episode = await prisma.episode.create({
-      data: {
-        title: 'Test Episode',
-        stackId,
-        error: 'Some error',
-        solution: 'Some solution',
-      },
-    });
+  test('should delete the stack by id', async () => {
+    await request(app.getHttpServer()).delete(`/stacks/${stackId}`).expect(204);
 
-    await request(app.getHttpServer())
-      .delete(`/episodes/${episode.id}`)
-      .expect(204);
-
-    const deletedEpisode = await prisma.episode.findUnique({
-      where: { id: episode.id },
+    const deletedStack = await prisma.stack.findUnique({
+      where: { id: stackId },
     });
-    expect(deletedEpisode).toBeNull();
+    expect(deletedStack).toBeNull();
   });
 
-  test('should return 404 for non-existing episode id', async () => {
+  test('should return 404 for non-existing stack id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
     const response = await request(app.getHttpServer())
-      .delete(`/episodes/${nonExistingId}`)
+      .delete(`/stacks/${nonExistingId}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
     expect(response.body).toHaveProperty(
       'message',
-      `Episode with ID ${nonExistingId} not found`,
+      `Stack with ID ${nonExistingId} not found`,
     );
   });
 
-  test('should return 400 for invalid episode id', async () => {
+  test('should return 400 for invalid stack id', async () => {
     const invalidId = 'invalid-uuid';
 
     const response = await request(app.getHttpServer())
-      .delete(`/episodes/${invalidId}`)
+      .delete(`/stacks/${invalidId}`)
       .expect(400);
 
     expect(response.body).toHaveProperty('statusCode', 400);
