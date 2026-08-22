@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EpisodesModule } from './episodes/episodes.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StacksModule } from './stacks/stacks.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module';
       envFilePath: '.env',
     }),
     EpisodesModule,
+    StacksModule,
     PrismaModule,
   ],
   controllers: [AppController],
