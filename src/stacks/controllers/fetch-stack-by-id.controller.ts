@@ -56,6 +56,6 @@ export class FetchStackByIdController {
       throw new NotFoundException(`Stack with ID ${id} not found`);
     }
 
-    return stack;
+    return { stack };
   }
 }
