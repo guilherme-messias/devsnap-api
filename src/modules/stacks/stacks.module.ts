@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
+import { PrismaModule } from '@prisma/prisma.module';
 import { CreateStackController } from './controllers/create-stack.controller';
 import { CreateStackService } from './services/create-stack.service';
 import { DeleteStackByIdController } from './controllers/delete-stack-by-id.controller';
