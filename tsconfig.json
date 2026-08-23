@@ -15,6 +15,7 @@
     "outDir": "./dist",
     "types": ["node", "vitest/globals"],
     "paths": {
+      "@src/*": ["./src/*"],
       "@modules/*": ["./src/modules/*"],
       "@shared/*": ["./src/shared/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
