@@ -69,10 +69,11 @@ describe('Create Annotations (E2E)', () => {
     expect(response.body.message).toEqual('Validation failed');
   });
   test('should return 404 when episode is not found', async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post(`/episodes/${randomUUID()}/annotations`)
       .send({ text: 'Annotation 1' })
       .expect(404);
+    expect(response.body.message).toEqual('Episode not found');
   });
   test('should return 400 when payload is missing', async () => {
     const response = await request(app.getHttpServer())

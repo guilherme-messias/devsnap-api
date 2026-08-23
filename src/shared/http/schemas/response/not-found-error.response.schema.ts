@@ -3,7 +3,7 @@ import z from 'zod';
 
 export const notFoundErrorResponseSchema = z.object({
   statusCode: z.literal(404),
-  message: z.string(),
+  message: z.literal('Episode not found'),
   error: z.literal('Not Found'),
 });
 
