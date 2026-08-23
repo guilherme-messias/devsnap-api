@@ -61,32 +61,24 @@ describe('Create Annotations (E2E)', () => {
       updatedAt: expect.any(String),
     });
   });
-  /* test('should return 400 when payload is invalid', async () => {
+  test('should return 400 when payload is invalid', async () => {
     const response = await request(app.getHttpServer())
-      .post('/episodes/123/annotations')
+      .post(`/episodes/${episode.id}/annotations`)
       .send({ text: '' })
       .expect(400);
-    expect(response.body).toEqual({
-      message: 'Validation failed',
-      errors: [{ field: 'text', message: 'Text is required' }],
-    });
+    expect(response.body.message).toEqual('Validation failed');
   });
   test('should return 404 when episode is not found', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/episodes/1234/annotations')
+    await request(app.getHttpServer())
+      .post(`/episodes/${randomUUID()}/annotations`)
       .send({ text: 'Annotation 1' })
       .expect(404);
-    expect(response.body).toEqual({
-      message: 'Episode not found',
-    });
   });
   test('should return 400 when payload is missing', async () => {
     const response = await request(app.getHttpServer())
-      .post('/episodes/123/annotations')
+      .post(`/episodes/${episode.id}/annotations`)
       .send({})
       .expect(400);
-    expect(response.body).toEqual({
-      message: 'Validation failed',
-    });
-  }); */
+    expect(response.body.message).toEqual('Validation failed');
+  });
 });
