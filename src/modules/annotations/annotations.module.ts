@@ -1,6 +1,6 @@
 import { PrismaModule } from '@infrastructure/prisma/prisma.module';
 import { Module } from '@nestjs/common';
-import { CreateAnnotationsController } from './controllers/create-annotations.service';
+import { CreateAnnotationsController } from './controllers/create-annotations.controller';
 import { CreateAnnotationsService } from './services/create-annotations.service';
 
 @Module({
