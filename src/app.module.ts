@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { EpisodesModule } from './modules/episodes/episodes.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StacksModule } from './modules/stacks/stacks.module';
+import { AnnotationsModule } from './modules/annotations/annotations.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { StacksModule } from './modules/stacks/stacks.module';
     EpisodesModule,
     StacksModule,
     PrismaModule,
+    AnnotationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

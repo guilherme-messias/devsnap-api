@@ -21,7 +21,6 @@ import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-foun
 const episodeIdSchema = z.uuid();
 type EpisodeId = z.infer<typeof episodeIdSchema>;
 
-//TODO: nao está subindo no swagger
 @ApiTags('annotations')
 @Controller('/episodes')
 export class CreateAnnotationsController {
