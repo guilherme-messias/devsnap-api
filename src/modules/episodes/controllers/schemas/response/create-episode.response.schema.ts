@@ -6,7 +6,7 @@ export const annotationResponseSchema = z.object({
   text: z.string(),
   episodeId: z.uuid(),
   createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime().nullable(),
+  updatedAt: z.iso.datetime(),
 });
 
 export const episodeResponseSchema = z.object({

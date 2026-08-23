@@ -1,13 +1,6 @@
 import { CreateAnnotationsService } from '../services/create-annotations.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Post,
-  UsePipes,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateAnnotationsDto,
@@ -46,12 +39,12 @@ export class CreateAnnotationsController {
     description: 'Episode not found',
     type: NotFoundErrorResponseDto,
   })
-  @UsePipes(new ZodValidationPipe(createAnnotationsSchema))
   async createAnnotations(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
     episodeId: EpisodeId,
-    @Body() data: CreateAnnotationsDto,
+    @Body(new ZodValidationPipe(createAnnotationsSchema))
+    body: CreateAnnotationsDto,
   ) {
-    return this.createAnnotationsService.createAnnotations(data, episodeId);
+    return this.createAnnotationsService.createAnnotations(body, episodeId);
   }
 }
