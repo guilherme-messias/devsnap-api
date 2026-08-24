@@ -5,12 +5,12 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 export class DeleteAnnotationsByIdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async deleteAnnotationsById(id: string) {
+  async deleteAnnotationsById(id: string, episodeId: string) {
     const annotation = await this.prisma.annotation.findUnique({
       where: { id },
     });
 
-    if (!annotation) {
+    if (!annotation || annotation.episodeId !== episodeId) {
       return null;
     }
 

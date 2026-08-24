@@ -1,7 +1,7 @@
 import { CreateAnnotationsService } from '../services/create-annotations.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateAnnotationsDto,
   createAnnotationsSchema,
@@ -24,6 +24,12 @@ export class CreateAnnotationsController {
   @Post(':episodeId/annotations')
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a new annotation' })
+  @ApiParam({
+    name: 'episodeId',
+    description: 'Episode ID',
+    required: true,
+    format: 'uuid',
+  })
   @ApiResponse({
     status: 201,
     description: 'The annotation has been successfully created.',
