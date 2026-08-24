@@ -5,10 +5,10 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateAnnotationsDto,
   createAnnotationsSchema,
-} from './request/create-annotations.request';
+} from './schemas/request/create-annotations.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import z from 'zod';
-import { CreateAnnotationsResponseDto } from './response/create-annotations.response';
+import { CreateAnnotationsResponseDto } from './schemas/response/create-annotations.response.schema';
 import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 
 const episodeIdSchema = z.uuid();

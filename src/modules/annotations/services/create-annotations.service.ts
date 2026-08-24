@@ -1,6 +1,6 @@
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAnnotationsDto } from '../controllers/request/create-annotations.request';
+import { CreateAnnotationsDto } from '../controllers/schemas/request/create-annotations.request.schema';
 
 @Injectable()
 export class CreateAnnotationsService {

@@ -4,10 +4,20 @@ import { CreateAnnotationsController } from './controllers/create-annotations.co
 import { CreateAnnotationsService } from './services/create-annotations.service';
 import { DeleteAnnotationsByIdController } from './controllers/delete-annotations-by-id.controller';
 import { DeleteAnnotationsByIdService } from './services/delete-annotations-by-id.service';
+import { FetchAnnotationsByIdController } from './controllers/fetch-annotations-by-id.controller';
+import { FetchAnnotationsByIdService } from './services/fetch-annotations-by-id.service';
 
 @Module({
-  controllers: [CreateAnnotationsController, DeleteAnnotationsByIdController],
+  controllers: [
+    CreateAnnotationsController,
+    DeleteAnnotationsByIdController,
+    FetchAnnotationsByIdController,
+  ],
   imports: [PrismaModule],
-  providers: [CreateAnnotationsService, DeleteAnnotationsByIdService],
+  providers: [
+    CreateAnnotationsService,
+    DeleteAnnotationsByIdService,
+    FetchAnnotationsByIdService,
+  ],
 })
 export class AnnotationsModule {}
