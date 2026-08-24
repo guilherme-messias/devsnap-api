@@ -1,11 +1,11 @@
-import { Controller, Get, HttpCode, Param } from '@nestjs/common';
+import { Controller, Get, HttpCode, Query, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { NotFoundErrorResponseDto } from '@src/shared/http/schemas/response/not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import { Query } from 'pg';
 import z from 'zod';
 import { FetchRecentAnnotationsService } from '../services/fetch-recent-annotations.service';
+import { FetchRecentAnnotationsResponseDto } from './schemas/response/fetch-recent-annotations.response.schema';
 
 const pageQueryParamsSchema = z
   .string()
@@ -59,9 +59,7 @@ export class FetchRecentAnnotationsController {
     type: ValidationErrorResponseDto,
   })
   async fetchRecentAnnotations(
-    //TODO: entender erro de tipagem
-    @Query('page', new ZodValidationPipe(pageQueryParamsSchema))
-    page: PageQueryParams,
+    @Query('page', queryValidationPipe) page: PageQueryParams,
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
     episodeId: EpisodeId,
   ) {
