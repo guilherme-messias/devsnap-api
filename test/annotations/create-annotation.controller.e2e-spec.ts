@@ -6,7 +6,7 @@ import { AppModule } from '@src/app.module';
 import { randomUUID } from 'crypto';
 import { Episode, Stack } from '@prisma/client';
 
-describe('Create Annotations (E2E)', () => {
+describe('Create Annotation (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let episode: Episode;

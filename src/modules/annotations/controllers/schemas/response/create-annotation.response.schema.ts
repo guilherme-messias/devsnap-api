@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-export const createAnnotationsResponseSchema = z.object({
+export const createAnnotationResponseSchema = z.object({
   id: z.uuid(),
   text: z.string().trim().min(1).max(1000),
   episodeId: z.uuid(),
@@ -9,6 +9,6 @@ export const createAnnotationsResponseSchema = z.object({
   updatedAt: z.iso.datetime(),
 });
 
-export class CreateAnnotationsResponseDto extends createZodDto(
-  createAnnotationsResponseSchema,
+export class CreateAnnotationResponseDto extends createZodDto(
+  createAnnotationResponseSchema,
 ) {}

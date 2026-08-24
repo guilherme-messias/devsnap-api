@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 
 @Injectable()
-export class DeleteAnnotationsByIdService {
+export class DeleteAnnotationByIdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async deleteAnnotationsById(id: string, episodeId: string) {
+  async deleteAnnotationById(id: string, episodeId: string) {
     const annotation = await this.prisma.annotation.findUnique({
       where: { id },
     });

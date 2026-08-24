@@ -1,12 +1,12 @@
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAnnotationsDto } from '../controllers/schemas/request/create-annotations.request.schema';
+import { CreateAnnotationDto } from '../controllers/schemas/request/create-annotation.request.schema';
 
 @Injectable()
-export class CreateAnnotationsService {
+export class CreateAnnotationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createAnnotations(data: CreateAnnotationsDto, episodeId: string) {
+  async createAnnotation(data: CreateAnnotationDto, episodeId: string) {
     const { text } = data;
 
     const episode = await this.prisma.episode.findUnique({

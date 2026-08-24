@@ -4,7 +4,7 @@ import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import request from 'supertest';
 
-describe('Delete Annotations By Id (E2E)', () => {
+describe('Delete Annotation By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;

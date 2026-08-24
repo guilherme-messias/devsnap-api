@@ -1,14 +1,14 @@
-import { CreateAnnotationsService } from '../services/create-annotations.service';
+import { CreateAnnotationService } from '../services/create-annotation.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  CreateAnnotationsDto,
-  createAnnotationsSchema,
-} from './schemas/request/create-annotations.request.schema';
+  CreateAnnotationDto,
+  createAnnotationSchema,
+} from './schemas/request/create-annotation.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import z from 'zod';
-import { CreateAnnotationsResponseDto } from './schemas/response/create-annotations.response.schema';
+import { CreateAnnotationResponseDto } from './schemas/response/create-annotation.response.schema';
 import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
 
 const episodeIdSchema = z.uuid();
@@ -16,9 +16,9 @@ type EpisodeId = z.infer<typeof episodeIdSchema>;
 
 @ApiTags('annotations')
 @Controller('/episodes')
-export class CreateAnnotationsController {
+export class CreateAnnotationController {
   constructor(
-    private readonly createAnnotationsService: CreateAnnotationsService,
+    private readonly createAnnotationService: CreateAnnotationService,
   ) {}
 
   @Post(':episodeId/annotations')
@@ -33,7 +33,7 @@ export class CreateAnnotationsController {
   @ApiResponse({
     status: 201,
     description: 'The annotation has been successfully created.',
-    type: CreateAnnotationsResponseDto,
+    type: CreateAnnotationResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -45,12 +45,12 @@ export class CreateAnnotationsController {
     description: 'Episode not found',
     type: NotFoundErrorResponseDto,
   })
-  async createAnnotations(
+  async createAnnotation(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
     episodeId: EpisodeId,
-    @Body(new ZodValidationPipe(createAnnotationsSchema))
-    body: CreateAnnotationsDto,
+    @Body(new ZodValidationPipe(createAnnotationSchema))
+    body: CreateAnnotationDto,
   ) {
-    return this.createAnnotationsService.createAnnotations(body, episodeId);
+    return this.createAnnotationService.createAnnotation(body, episodeId);
   }
 }

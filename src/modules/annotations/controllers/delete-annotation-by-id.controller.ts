@@ -1,9 +1,15 @@
-import { Controller, Delete, HttpCode, NotFoundException, Param } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  HttpCode,
+  NotFoundException,
+  Param,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { NotFoundErrorResponseDto } from '@src/shared/http/schemas/response/not-found-error.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import z from 'zod';
-import { DeleteAnnotationsByIdService } from '../services/delete-annotations-by-id.service';
+import { DeleteAnnotationByIdService } from '../services/delete-annotation-by-id.service';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 
 const episodeIdSchema = z.uuid();
@@ -14,9 +20,9 @@ type Id = z.infer<typeof idSchema>;
 
 @ApiTags('annotations')
 @Controller('/episodes')
-export class DeleteAnnotationsByIdController {
+export class DeleteAnnotationByIdController {
   constructor(
-    private readonly deleteAnnotationsByIdService: DeleteAnnotationsByIdService,
+    private readonly deleteAnnotationByIdService: DeleteAnnotationByIdService,
   ) {}
 
   @Delete(':episodeId/annotations/:id')
@@ -50,15 +56,16 @@ export class DeleteAnnotationsByIdController {
     description: 'Annotation or episode not found',
     type: NotFoundErrorResponseDto,
   })
-  async deleteAnnotationsById(
+  async deleteAnnotationById(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
     episodeId: EpisodeId,
     @Param('id', new ZodValidationPipe(idSchema)) id: Id,
   ) {
-    const deletedAnnotation = await this.deleteAnnotationsByIdService.deleteAnnotationsById(
-      id,
-      episodeId,
-    );
+    const deletedAnnotation =
+      await this.deleteAnnotationByIdService.deleteAnnotationById(
+        id,
+        episodeId,
+      );
 
     if (!deletedAnnotation) {
       throw new NotFoundException('Annotation or episode not found');
