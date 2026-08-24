@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 
 @Injectable()
-export class FetchAnnotationsByIdService {
+export class FetchAnnotationByIdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async fetchAnnotationsById(id: string, episodeId: string) {
+  async fetchAnnotationById(id: string, episodeId: string) {
     const annotation = await this.prisma.annotation.findUnique({
       where: { id },
     });
