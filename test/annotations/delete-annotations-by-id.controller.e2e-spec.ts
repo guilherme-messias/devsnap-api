@@ -47,6 +47,7 @@ describe('Delete Annotations By Id (E2E)', () => {
   afterAll(async () => {
     await prisma.annotation.deleteMany({});
     await prisma.episode.deleteMany({});
+    await prisma.stack.deleteMany({});
     await app.close();
   });
 
