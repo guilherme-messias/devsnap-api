@@ -15,7 +15,7 @@ import {
   UpdateEpisodeDto,
 } from './schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from './schemas/response/update-episode-response.schema';
 
 const idParamSchema = z.uuid();
@@ -50,7 +50,7 @@ export class UpdateEpisodeController {
   @ApiResponse({
     status: 404,
     description: 'Episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async updateEpisode(
     @Param('id', new ZodValidationPipe(idParamSchema)) id: IdParam,

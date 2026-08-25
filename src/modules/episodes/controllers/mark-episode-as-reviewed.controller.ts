@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { MarkEpisodeAsReviewedService } from '../services/mark-episode-as-reviewed.service';
 import { ApiParam, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { MarkEpisodeAsReviewedResponseDto } from './schemas/response/mark-episode-as-reviewed.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
@@ -63,7 +63,7 @@ export class MarkEpisodeAsReviewedController {
   @ApiResponse({
     status: 404,
     description: 'Episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async markEpisodeAsReviewed(
     @Param('id', idParamValidationPipe) id: IdParam,

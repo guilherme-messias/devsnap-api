@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, Query, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { NotFoundErrorResponseDto } from '@src/shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import z from 'zod';
@@ -51,7 +51,7 @@ export class FetchRecentAnnotationsController {
   @ApiResponse({
     status: 404,
     description: 'Episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   @ApiResponse({
     status: 400,

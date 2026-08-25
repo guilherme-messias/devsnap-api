@@ -9,7 +9,7 @@ import {
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import z from 'zod';
 import { CreateAnnotationResponseDto } from './schemas/response/create-annotation.response.schema';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 
 const episodeIdSchema = z.uuid();
 type EpisodeId = z.infer<typeof episodeIdSchema>;
@@ -43,7 +43,7 @@ export class CreateAnnotationController {
   @ApiResponse({
     status: 404,
     description: 'Episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async createAnnotation(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))

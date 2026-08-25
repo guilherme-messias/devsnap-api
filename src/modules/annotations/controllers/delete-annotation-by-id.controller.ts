@@ -6,7 +6,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { NotFoundErrorResponseDto } from '@src/shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import z from 'zod';
 import { DeleteAnnotationByIdService } from '../services/delete-annotation-by-id.service';
@@ -54,7 +54,7 @@ export class DeleteAnnotationByIdController {
   @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async deleteAnnotationById(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))

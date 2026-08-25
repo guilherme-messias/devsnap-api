@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import z from 'zod';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteStackByIdService } from '../services/delete-stack-by-id.service';
@@ -47,7 +47,7 @@ export class DeleteStackByIdController {
   @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async deleteStackById(@Param('id', paramValidationPipe) id: IdParam) {
     const deletedStack = await this.deleteStackByIdService.deleteStackById(id);

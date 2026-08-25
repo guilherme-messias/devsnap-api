@@ -9,7 +9,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import z from 'zod';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { UpdateStackService } from '../services/update-stack.service';
 import {
@@ -50,7 +50,7 @@ export class UpdateStackController {
   @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async updateStack(
     @Param('id', new ZodValidationPipe(idParamSchema)) id: IdParam,

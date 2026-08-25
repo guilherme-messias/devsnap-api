@@ -7,7 +7,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { NotFoundErrorResponseDto } from '@src/shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import z from 'zod';
 import { FetchAnnotationResponseDto } from './schemas/response/fetch-annotation.response.schema';
@@ -56,7 +56,7 @@ export class FetchAnnotationByIdController {
   @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async fetchAnnotationById(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))

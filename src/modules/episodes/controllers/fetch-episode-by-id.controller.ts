@@ -10,7 +10,7 @@ import z from 'zod';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { FetchEpisodeResponseDto } from './schemas/response/fetch-episode.response.schema';
 
 const idParamSchema = z.uuid();
@@ -49,7 +49,7 @@ export class FetchEpisodeByIdController {
   @ApiResponse({
     status: 404,
     description: 'Episode not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async fetchEpisodeById(@Param('id', paramValidationPipe) id: IdParam) {
     const episode = await this.fetchEpisodeByIdService.fetchEpisodeById(id);

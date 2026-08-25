@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { FetchStackResponseDto } from './schemas/response/fetch-stack.response.schema';
 import z from 'zod';
-import { NotFoundErrorResponseDto } from '@shared/http/schemas/response/not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { FetchStackByIdService } from '../services/fetch-stack-by-id.service';
 
@@ -47,7 +47,7 @@ export class FetchStackByIdController {
   @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: NotFoundErrorResponseDto,
+    type: EpisodeNotFoundErrorResponseDto,
   })
   async fetchStackById(@Param('id', paramValidationPipe) id: IdParam) {
     const stack = await this.fetchStackByIdService.fetchStackById(id);
