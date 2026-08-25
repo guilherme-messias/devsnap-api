@@ -53,7 +53,9 @@ export class FetchStackByIdController {
     const stack = await this.fetchStackByIdService.fetchStackById(id);
 
     if (!stack) {
-      throw new NotFoundException(`Stack with ID ${id} not found`);
+      throw new NotFoundException(
+        `Stack with ID ${id} not found`,
+      );
     }
 
     return { stack };

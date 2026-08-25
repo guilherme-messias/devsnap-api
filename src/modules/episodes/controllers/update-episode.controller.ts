@@ -63,7 +63,9 @@ export class UpdateEpisodeController {
     );
 
     if (!updatedEpisode) {
-      throw new NotFoundException(`Episode with ID ${id} not found`);
+      throw new NotFoundException(
+        `Episode with ID ${id} not found`,
+      );
     }
 
     return { episode: updatedEpisode };

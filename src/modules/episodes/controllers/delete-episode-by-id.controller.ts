@@ -54,7 +54,9 @@ export class DeleteEpisodeByIdController {
       await this.deleteEpisodeByIdService.deleteEpisodeById(id);
 
     if (!deletedEpisode) {
-      throw new NotFoundException(`Episode with ID ${id} not found`);
+      throw new NotFoundException(
+        `Episode with ID ${id} not found`,
+      );
     }
 
     return;

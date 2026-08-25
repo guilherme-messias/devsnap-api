@@ -60,7 +60,9 @@ export class UpdateStackController {
     const updatedStack = await this.updateStackService.updateStack(id, body);
 
     if (!updatedStack) {
-      throw new NotFoundException(`Stack with ID ${id} not found`);
+      throw new NotFoundException(
+        `Stack with ID ${id} not found`,
+      );
     }
 
     return { stack: updatedStack };

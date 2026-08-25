@@ -53,7 +53,9 @@ export class DeleteStackByIdController {
     const deletedStack = await this.deleteStackByIdService.deleteStackById(id);
 
     if (!deletedStack) {
-      throw new NotFoundException(`Stack with ID ${id} not found`);
+      throw new NotFoundException(
+        `Stack with ID ${id} not found`,
+      );
     }
 
     return;

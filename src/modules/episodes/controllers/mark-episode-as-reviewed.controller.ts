@@ -76,7 +76,9 @@ export class MarkEpisodeAsReviewedController {
       );
 
     if (!updatedEpisode) {
-      throw new NotFoundException(`Episode with ID ${id} not found`);
+      throw new NotFoundException(
+        `Episode with ID ${id} not found`,
+      );
     }
 
     return { episode: updatedEpisode };

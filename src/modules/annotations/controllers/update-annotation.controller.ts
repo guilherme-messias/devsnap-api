@@ -14,6 +14,7 @@ import z from 'zod';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { UpdateAnnotationResponseDto } from './schemas/response/update-annotation.response.schema';
+import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 
 const episodeIdSchema = z.uuid();
 type EpisodeId = z.infer<typeof episodeIdSchema>;
@@ -63,7 +64,7 @@ export class UpdateAnnotationController {
   @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
-    type: EpisodeNotFoundErrorResponseDto,
+    type: AnnotationOrEpisodeNotFoundErrorResponseDto,
   })
   async updateAnnotation(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
@@ -75,9 +76,7 @@ export class UpdateAnnotationController {
     const updatedAnnotation =
       await this.updateAnnotationService.updateAnnotation(id, body, episodeId);
     if (!updatedAnnotation) {
-      throw new NotFoundException(
-        `Annotation with ID ${id} or episode with ID ${episodeId} not found`,
-      );
+      throw new NotFoundException(`Annotation or episode not found`);
     }
     return { annotation: updatedAnnotation };
   }

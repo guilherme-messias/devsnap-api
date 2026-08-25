@@ -79,7 +79,7 @@ describe('Update Annotation (E2E)', () => {
     expect(response.body).toHaveProperty('statusCode', 404);
     expect(response.body).toHaveProperty(
       'message',
-      `Annotation with ID ${annotationId} or episode with ID ${nonExistingEpisodeId} not found`,
+      `Annotation or episode not found`,
     );
   });
 
@@ -94,7 +94,7 @@ describe('Update Annotation (E2E)', () => {
     expect(response.body).toHaveProperty('statusCode', 404);
     expect(response.body).toHaveProperty(
       'message',
-      `Annotation with ID ${nonExistingAnnotationId} or episode with ID ${episodeId} not found`,
+      `Annotation or episode not found`,
     );
   });
 

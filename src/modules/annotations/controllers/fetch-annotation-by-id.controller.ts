@@ -7,11 +7,11 @@ import {
   Param,
 } from '@nestjs/common';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import z from 'zod';
 import { FetchAnnotationResponseDto } from './schemas/response/fetch-annotation.response.schema';
 import { FetchAnnotationByIdService } from '../services/fetch-annotation-by-id.service';
+import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 
 const episodeIdSchema = z.uuid();
 type EpisodeId = z.infer<typeof episodeIdSchema>;
@@ -56,7 +56,7 @@ export class FetchAnnotationByIdController {
   @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
-    type: EpisodeNotFoundErrorResponseDto,
+    type: AnnotationOrEpisodeNotFoundErrorResponseDto,
   })
   async fetchAnnotationById(
     @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
@@ -67,7 +67,7 @@ export class FetchAnnotationByIdController {
       await this.fetchAnnotationByIdService.fetchAnnotationById(id, episodeId);
 
     if (!annotation) {
-      throw new NotFoundException('Annotation or episode not found');
+      throw new NotFoundException(`Annotation or episode not found`);
     }
 
     return { annotation };
