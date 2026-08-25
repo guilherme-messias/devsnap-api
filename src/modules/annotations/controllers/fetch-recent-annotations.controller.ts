@@ -1,5 +1,11 @@
 import { Controller, Get, HttpCode, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiParam,
+} from '@nestjs/swagger';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
@@ -31,6 +37,12 @@ export class FetchRecentAnnotationsController {
   @HttpCode(200)
   @ApiOperation({
     summary: 'Fetch recent annotations',
+  })
+  @ApiParam({
+    name: 'episodeId',
+    description: 'The ID of the episode',
+    required: true,
+    format: 'uuid',
   })
   @ApiQuery({
     name: 'page',
