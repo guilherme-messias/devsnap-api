@@ -73,7 +73,7 @@ export class UpdateAnnotationController {
     body: UpdateAnnotationDto,
   ) {
     const updatedAnnotation =
-      await this.updateAnnotationService.updateAnnotation(episodeId, body, id);
+      await this.updateAnnotationService.updateAnnotation(id, body, episodeId);
     if (!updatedAnnotation) {
       throw new NotFoundException(
         `Annotation with ID ${id} or episode with ID ${episodeId} not found`,
