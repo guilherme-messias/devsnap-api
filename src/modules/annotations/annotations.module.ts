@@ -8,6 +8,8 @@ import { FetchAnnotationByIdController } from './controllers/fetch-annotation-by
 import { FetchAnnotationByIdService } from './services/fetch-annotation-by-id.service';
 import { FetchRecentAnnotationsController } from './controllers/fetch-recent-annotations.controller';
 import { FetchRecentAnnotationsService } from './services/fetch-recent-annotations.service';
+import { UpdateAnnotationController } from './controllers/update-annotation.controller';
+import { UpdateAnnotationService } from './services/update-annotation.service';
 
 @Module({
   controllers: [
@@ -15,6 +17,7 @@ import { FetchRecentAnnotationsService } from './services/fetch-recent-annotatio
     DeleteAnnotationByIdController,
     FetchAnnotationByIdController,
     FetchRecentAnnotationsController,
+    UpdateAnnotationController,
   ],
   imports: [PrismaModule],
   providers: [
@@ -22,6 +25,7 @@ import { FetchRecentAnnotationsService } from './services/fetch-recent-annotatio
     DeleteAnnotationByIdService,
     FetchAnnotationByIdService,
     FetchRecentAnnotationsService,
+    UpdateAnnotationService,
   ],
 })
 export class AnnotationsModule {}
