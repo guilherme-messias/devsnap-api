@@ -1,9 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
-import { updateAnnotationSchema } from '../request/update-annotation.request.schema';
+import { createAnnotationResponseSchema } from './create-annotation.response.schema';
 
 export const updateAnnotationResponseSchema = z.object({
-  annotation: updateAnnotationSchema,
+  annotation: createAnnotationResponseSchema,
 });
 
 export class UpdateAnnotationResponseDto extends createZodDto(
