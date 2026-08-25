@@ -54,8 +54,9 @@ describe('Update Annotation (E2E)', () => {
       .send({ text: 'Updated Annotation' })
       .expect(200);
 
-    expect(response.body.text).toBe('Updated Annotation');
-    expect(response.body.episodeId).toBe(episodeId);
+    expect(response.body.annotation.id).toBe(annotationId);
+    expect(response.body.annotation.episodeId).toBe(episodeId);
+    expect(response.body.annotation.text).toBe('Updated Annotation');
   });
 
   test('should return 400 when payload is invalid', async () => {
