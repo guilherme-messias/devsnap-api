@@ -3,7 +3,7 @@ import z from 'zod';
 
 export const annotationResponseSchema = z.object({
   id: z.uuid(),
-  text: z.string(),
+  text: z.string().trim().min(1).max(1000),
   episodeId: z.uuid(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime().nullable(),
