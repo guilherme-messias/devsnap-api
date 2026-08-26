@@ -1,9 +1,10 @@
-import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateEpisodeReviewService } from '../services/create-episode-review.service';
 import { CreateEpisodeReviewDto } from './schemas/request/create-episode-review.request.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { CreateEpisodeReviewResponseDto } from './schemas/response/create-episode-review.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 
 @ApiTags('episodes')
 @Controller('/episodes')
@@ -31,16 +32,28 @@ export class CreateEpisodeReviewController {
     description: 'Invalid request body',
     type: ValidationErrorResponseDto,
   })
+  @ApiResponse({
+    status: 404,
+    description: 'Episode not found',
+    type: EpisodeNotFoundErrorResponseDto,
+  })
   async createEpisodeReview(
     @Param('episodeId') episodeId: string,
     @Body() body: CreateEpisodeReviewDto,
   ) {
     const { result, focusSessionId } = body;
 
-    return this.createEpisodeReviewService.createEpisodeReview(
-      episodeId,
-      result,
-      focusSessionId,
-    );
+    const episodeReview =
+      await this.createEpisodeReviewService.createEpisodeReview(
+        episodeId,
+        result,
+        focusSessionId,
+      );
+
+    if (!episodeReview) {
+      throw new NotFoundException('Episode not found');
+    }
+
+    return episodeReview;
   }
 }

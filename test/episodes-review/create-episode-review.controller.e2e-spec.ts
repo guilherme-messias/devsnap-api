@@ -62,4 +62,39 @@ describe('Create Episode Review (E2E)', () => {
       focusSessionId: 'some-focus-session-id',
     });
   });
+
+  test('should return 400 when payload is invalid', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: 'Some result',
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 400 when result is empty', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: '   ',
+        focusSessionId: 'some-focus-session-id',
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 404 when episode does not exist', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/non-existent-episode-id/reviews`)
+      .send({
+        result: 'Some result',
+        focusSessionId: 'some-focus-session-id',
+      })
+      .expect(404);
+
+    expect(response.body.message).toEqual('Episode not found');
+  });
 });

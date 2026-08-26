@@ -10,6 +10,14 @@ export class CreateEpisodeReviewService {
     result: string,
     focusSessionId?: string,
   ) {
+    const episode = await this.prisma.episode.findUnique({
+      where: { id: episodeId },
+    });
+
+    if (!episode) {
+      return null;
+    }
+
     return this.prisma.episodeReview.create({
       data: {
         episodeId,
