@@ -59,10 +59,10 @@ describe('Update Annotation (E2E)', () => {
     expect(response.body.annotation.text).toBe('Updated Annotation');
   });
 
-  test('should return 400 when payload is invalid', async () => {
+  test('should return 400 when payload is missing', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
-      .send({ text: '' })
+      .send({})
       .expect(400);
 
     expect(response.body.message).toEqual('Validation failed');
@@ -98,13 +98,35 @@ describe('Update Annotation (E2E)', () => {
     );
   });
 
+  test('should return 400 when episodeId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .patch(`/episodes/${'invalid-uuid'}/annotations/${annotationId}`)
+      .send({ text: 'Updated Annotation' })
+      .expect(400);
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
+  test('should return 400 when annotationId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .patch(`/episodes/${episodeId}/annotations/${'invalid-uuid'}`)
+      .send({ text: 'Updated Annotation' })
+      .expect(400);
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
+  test('should return 400 when text is more than 1000 characters', async () => {
+    const response = await request(app.getHttpServer())
+      .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
+      .send({ text: 'a'.repeat(1001) })
+      .expect(400);
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
   test('should return 400 when text is empty', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .send({ text: '' })
       .expect(400);
-
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(response.body.message).toEqual('Validation failed');
   });
 });

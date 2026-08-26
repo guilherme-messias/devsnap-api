@@ -95,6 +95,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
     expect(response.body.annotations[0]).toHaveProperty('text');
     expect(response.body.annotations[0]).toHaveProperty('episodeId');
     expect(response.body.annotations[0]).toHaveProperty('createdAt');
+    expect(response.body.annotations[0]).toHaveProperty('updatedAt');
   });
 
   test('should return 200 with empty annotations array when there are no annotations', async () => {

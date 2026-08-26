@@ -40,12 +40,11 @@ describe('Create Annotation (E2E)', () => {
       },
     });
   });
-  afterEach(async () => {
+
+  afterAll(async () => {
     await prisma.episode.deleteMany();
     await prisma.stack.deleteMany();
     await prisma.annotation.deleteMany();
-  });
-  afterAll(async () => {
     await app.close();
   });
   test('should create an annotation when payload is valid', async () => {
@@ -79,6 +78,22 @@ describe('Create Annotation (E2E)', () => {
     const response = await request(app.getHttpServer())
       .post(`/episodes/${episode.id}/annotations`)
       .send({})
+      .expect(400);
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
+  test('should return 400 when episodeId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${'invalid-uuid'}/annotations`)
+      .send({ text: 'Annotation 1' })
+      .expect(400);
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
+  test('should return 400 when text is more than 1000 characters', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episode.id}/annotations`)
+      .send({ text: 'a'.repeat(1001) })
       .expect(400);
     expect(response.body.message).toEqual('Validation failed');
   });
