@@ -22,9 +22,10 @@ model Episode {
 
   annotations Annotation[]
 
-  reviewed  Boolean  @default(false)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  reviewed       Boolean         @default(false)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  episodeReviews EpisodeReview[]
 
   @@map("episodes")
 }
@@ -49,4 +50,15 @@ model Annotation {
   updatedAt DateTime? @updatedAt @map("updated_at")
 
   @@map("annotations")
+}
+
+model EpisodeReview {
+  id             String   @id @default(uuid())
+  episodeId      String   @map("episode_id")
+  episode        Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  reviewAt       DateTime @default(now()) @map("review_at")
+  result         String
+  focusSessionId String?  @map("focus_session_id")
+
+  @@map("episode_reviews")
 }
