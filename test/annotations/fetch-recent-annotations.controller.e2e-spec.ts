@@ -133,7 +133,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
     expect(response.body.message).toEqual('Validation failed');
   });
 
-  test('should return an empty array when page exceeds available episodes', async () => {
+  test('should return an empty array when the page exceeds available annotations', async () => {
     const response = await request(app.getHttpServer())
       .get(`/episodes/${episodeId}/annotations?page=100`)
       .expect(200);

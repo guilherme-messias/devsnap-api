@@ -14,17 +14,16 @@ import z from 'zod';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { UpdateAnnotationResponseDto } from './schemas/response/update-annotation.response.schema';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
+import {
+  UpdateAnnotationDto,
+  updateAnnotationSchema,
+} from './schemas/request/update-annotation.request.schema';
 
 const episodeIdSchema = z.uuid();
 type EpisodeId = z.infer<typeof episodeIdSchema>;
 
 const idSchema = z.uuid();
 type Id = z.infer<typeof idSchema>;
-
-const updateAnnotationSchema = z.object({
-  text: z.string().trim().min(1).max(1000),
-});
-type UpdateAnnotationDto = z.infer<typeof updateAnnotationSchema>;
 
 @ApiTags('annotations')
 @Controller('/episodes')
