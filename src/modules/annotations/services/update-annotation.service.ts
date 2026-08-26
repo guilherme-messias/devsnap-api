@@ -19,7 +19,7 @@ export class UpdateAnnotationService {
     if (count === 0) {
       return null;
     }
-    
+
     return this.prisma.annotation.findUnique({
       where: { id },
     });

@@ -12,7 +12,6 @@ import { UpdateAnnotationService } from '../services/update-annotation.service';
 
 import z from 'zod';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { UpdateAnnotationResponseDto } from './schemas/response/update-annotation.response.schema';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 
