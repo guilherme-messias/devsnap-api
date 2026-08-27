@@ -6,7 +6,7 @@ export const episodeReviewResponseSchema = z.object({
   episodeId: z.uuid(),
   reviewAt: z.iso.datetime(),
   result: z.string().trim().min(1).max(500),
-  focusSessionId: z.uuid().optional(),
+  focusSessionId: z.uuid().nullable(),
 });
 
 export const createEpisodeReviewResponseSchema = episodeReviewResponseSchema;

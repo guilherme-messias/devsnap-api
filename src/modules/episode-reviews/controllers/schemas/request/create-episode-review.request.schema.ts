@@ -3,7 +3,7 @@ import z from 'zod';
 
 export const createEpisodeReviewSchema = z.object({
   result: z.string().trim().min(1).max(500),
-  focusSessionId: z.uuid().optional(),
+  focusSessionId: z.uuid().nullable(),
 });
 
 export class CreateEpisodeReviewDto extends createZodDto(
