@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class FetchRecentEpisodeReviewsService {
     });
 
     if (!episode) {
-      throw new NotFoundException('Episode not found');
+      return null;
     }
 
     const episodeReviews = await this.prisma.episodeReview.findMany({

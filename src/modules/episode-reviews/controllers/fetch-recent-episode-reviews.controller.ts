@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -85,6 +92,10 @@ export class FetchRecentEpisodeReviewsController {
         },
         episodeId,
       );
+
+    if (!episodeReviews) {
+      throw new NotFoundException('Episode not found');
+    }
 
     return { episodeReviews };
   }
