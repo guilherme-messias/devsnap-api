@@ -43,7 +43,7 @@ export class CreateEpisodeReviewController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid request body',
+    description: 'Invalid request body or ID parameter',
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
@@ -63,7 +63,7 @@ export class CreateEpisodeReviewController {
       await this.createEpisodeReviewService.createEpisodeReview(
         episodeId,
         result,
-        focusSessionId,
+        focusSessionId ?? undefined,
       );
 
     if (!episodeReview) {

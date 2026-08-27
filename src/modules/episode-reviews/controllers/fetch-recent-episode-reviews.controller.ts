@@ -67,7 +67,7 @@ export class FetchRecentEpisodeReviewsController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid page parameter',
+    description: 'Invalid page parameter or episode ID',
     type: ValidationErrorResponseDto,
   })
   async fetchRecentEpisodeReviews(
