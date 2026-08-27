@@ -13,6 +13,8 @@ import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 
 const episodeIdSchema = z.uuid();
+
+const paramValidationPipe = new ZodValidationPipe(episodeIdSchema);
 type EpisodeId = z.infer<typeof episodeIdSchema>;
 
 @ApiTags('episode-reviews')
@@ -48,7 +50,7 @@ export class DeleteLastEpisodeReviewController {
     type: EpisodeReviewOrEpisodeNotFoundErrorResponseDto,
   })
   async deleteLastEpisodeReview(
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
+    @Param('episodeId', paramValidationPipe)
     episodeId: EpisodeId,
   ) {
     const deletedEpisodeReview =

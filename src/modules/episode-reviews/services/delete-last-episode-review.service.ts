@@ -16,7 +16,7 @@ export class DeleteLastEpisodeReviewService {
     }
 
     return this.prisma.episodeReview.delete({
-      where: { id: episodeId },
+      where: { id: lastEpisodeReview.id },
     });
   }
 }
