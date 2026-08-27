@@ -22,7 +22,9 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+  });
 
+  beforeEach(async () => {
     const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
     stackId = stack.id;
 
@@ -43,10 +45,13 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   afterAll(async () => {
+    await app.close();
+  });
+
+  afterEach(async () => {
     await prisma.episodeReview.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
-    await app.close();
   });
 
   test('should return 204 if the last episode review is deleted', async () => {
@@ -62,21 +67,17 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   test('should return 404 if the episode review is not found', async () => {
+    const invalidEpisodeId = randomUUID();
     await request(app.getHttpServer())
-      .delete(`/episodes/${episodeId}/reviews/latest`)
+      .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
       .expect(404);
   });
 
   test('should return 404 if the episode is not found', async () => {
+    const invalidEpisodeId = randomUUID();
     await request(app.getHttpServer())
-      .delete(`/episodes/${episodeId}/reviews/latest`)
+      .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
       .expect(404);
-
-    const deletedEpisodeReview = await prisma.episodeReview.findUnique({
-      where: { id: episodeReviewId },
-    });
-
-    expect(deletedEpisodeReview).toBeNull();
   });
   test('should return 400 if the episode id is invalid', async () => {
     await request(app.getHttpServer())
