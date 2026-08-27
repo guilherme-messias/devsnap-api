@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { randomUUID } from 'crypto';
 
 describe('Create Episode Review (E2E)', () => {
   let app: INestApplication;
@@ -45,7 +46,7 @@ describe('Create Episode Review (E2E)', () => {
       .post(`/episodes/${episodeId}/reviews`)
       .send({
         result: 'Some result',
-        focusSessionId: 'some-focus-session-id',
+        focusSessionId: randomUUID(),
       })
       .expect(201);
 
@@ -59,7 +60,7 @@ describe('Create Episode Review (E2E)', () => {
     expect(response.body).toMatchObject({
       episodeId,
       result: 'Some result',
-      focusSessionId: 'some-focus-session-id',
+      focusSessionId: expect.any(String) as string,
     });
   });
 
@@ -67,7 +68,7 @@ describe('Create Episode Review (E2E)', () => {
     const response = await request(app.getHttpServer())
       .post(`/episodes/${episodeId}/reviews`)
       .send({
-        result: 'Some result',
+        focusSessionId: randomUUID(),
       })
       .expect(400);
 
@@ -79,7 +80,7 @@ describe('Create Episode Review (E2E)', () => {
       .post(`/episodes/${episodeId}/reviews`)
       .send({
         result: '   ',
-        focusSessionId: 'some-focus-session-id',
+        focusSessionId: randomUUID(),
       })
       .expect(400);
 
@@ -88,10 +89,10 @@ describe('Create Episode Review (E2E)', () => {
 
   test('should return 404 when episode does not exist', async () => {
     const response = await request(app.getHttpServer())
-      .post(`/episodes/non-existent-episode-id/reviews`)
+      .post(`/episodes/${randomUUID()}/reviews`)
       .send({
         result: 'Some result',
-        focusSessionId: 'some-focus-session-id',
+        focusSessionId: randomUUID(),
       })
       .expect(404);
 
