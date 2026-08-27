@@ -19,7 +19,7 @@ type EpisodeId = z.infer<typeof episodeIdSchema>;
 const idSchema = z.uuid();
 type Id = z.infer<typeof idSchema>;
 
-@ApiTags('episodes-review')
+@ApiTags('episode-reviews')
 @Controller('/episodes')
 export class FetchEpisodeReviewByIdController {
   constructor(

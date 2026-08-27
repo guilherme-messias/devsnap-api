@@ -6,7 +6,7 @@ import { EpisodesModule } from './modules/episodes/episodes.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StacksModule } from './modules/stacks/stacks.module';
 import { AnnotationsModule } from './modules/annotations/annotations.module';
-import { EpisodeReviewModule } from './modules/episodes-review/episode-review.module';
+import { EpisodeReviewsModule } from './modules/episode-reviews/episode-reviews.module';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { EpisodeReviewModule } from './modules/episodes-review/episode-review.mo
     StacksModule,
     PrismaModule,
     AnnotationsModule,
-    EpisodeReviewModule,
+    EpisodeReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

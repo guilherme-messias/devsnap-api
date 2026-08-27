@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 
 @Injectable()
-export class FetchRecentEpisodeReviewService {
+export class FetchRecentEpisodeReviewsService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchRecentEpisodeReview(
+  async fetchRecentEpisodeReviews(
     data: {
       page: number;
       perPage: number;

@@ -20,7 +20,7 @@ import z from 'zod';
 
 const idParamSchema = z.uuid();
 type IdParam = z.infer<typeof idParamSchema>;
-@ApiTags('episodes-review')
+@ApiTags('episode-reviews')
 @Controller('/episodes')
 export class CreateEpisodeReviewController {
   constructor(
