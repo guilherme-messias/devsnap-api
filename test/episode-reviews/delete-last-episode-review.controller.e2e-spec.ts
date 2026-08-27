@@ -67,18 +67,21 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   test('should return 404 if the episode review is not found', async () => {
-    const invalidEpisodeId = randomUUID();
+    await prisma.episodeReview.delete({ where: { id: episodeReviewId } });
+
     await request(app.getHttpServer())
-      .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
+      .delete(`/episodes/${episodeId}/reviews/latest`)
       .expect(404);
   });
 
   test('should return 404 if the episode is not found', async () => {
     const invalidEpisodeId = randomUUID();
+
     await request(app.getHttpServer())
       .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
       .expect(404);
   });
+
   test('should return 400 if the episode id is invalid', async () => {
     await request(app.getHttpServer())
       .delete(`/episodes/invalid-id/reviews/latest`)
