@@ -60,8 +60,6 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
       .get(`/episodes/${episodeId}/reviews?page=1`)
       .expect(200);
 
-    console.log('BODY:', JSON.stringify(response.body, null, 2));
-
     expect(response.body.episodeReviews).toBeInstanceOf(Array);
     expect(response.body.episodeReviews.length).toBe(1);
     expect(response.body.episodeReviews[0].result).toBe('Review 2');
