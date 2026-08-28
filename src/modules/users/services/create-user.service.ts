@@ -10,6 +10,16 @@ export class CreateUserService {
   async createUser(data: CreateUserDto) {
     const { name, email, password, avatarUrl, role } = data;
 
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (existingUser) {
+      null;
+    }
+
     const passwordHash = await argon2.hash(password);
 
     const user = await this.prisma.user.create({
