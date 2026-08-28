@@ -64,6 +64,7 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
       },
     });
   });
+
   test('should return 404 for non-existing episode review id', async () => {
     const nonExistingEpisodeReviewId = '00000000-0000-0000-0000-000000000000';
     const response = await request(app.getHttpServer()).get(
@@ -75,6 +76,27 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
       message: 'Episode review or episode not found',
       error: 'Not Found',
     });
+  });
+
+  test('should return 404 when episode review belongs to another episode', async () => {
+    const anotherEpisode = await prisma.episode.create({
+      data: {
+        title: 'Episode 2',
+        error: 'Error 2',
+        solution: 'Solution 2',
+        stackId: stackId,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${anotherEpisode.id}/reviews/${episodeReviewId}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Episode review or episode not found',
+    );
   });
 
   test('should return 404 for non-existing episode id', async () => {

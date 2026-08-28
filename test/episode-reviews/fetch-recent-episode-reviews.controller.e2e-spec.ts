@@ -10,8 +10,6 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   let prisma: PrismaService;
   let stackId: string;
   let episodeId: string;
-  let episodeReviewId: string;
-  let episodeReview2Id: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,7 +21,9 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+  });
 
+  beforeEach(async () => {
     const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
     stackId = stack.id;
 
@@ -37,22 +37,23 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     });
     episodeId = episode.id;
 
-    const episodeReview = await prisma.episodeReview.create({
+    await prisma.episodeReview.create({
       data: { episodeId, result: 'Review 1', focusSessionId: randomUUID() },
     });
-    episodeReviewId = episodeReview.id;
 
-    const episodeReview2 = await prisma.episodeReview.create({
+    await prisma.episodeReview.create({
       data: { episodeId, result: 'Review 2', focusSessionId: randomUUID() },
     });
-    episodeReview2Id = episodeReview2.id;
   });
 
   afterAll(async () => {
+    await app.close();
+  });
+
+  afterEach(async () => {
     await prisma.episodeReview.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
-    await app.close();
   });
 
   test('should return the most recent episode reviews', async () => {
@@ -96,9 +97,26 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     expect(response.body.episodeReviews.length).toBe(0);
   });
 
+  test('should return 200 with empty reviews array when page exceeds total pages', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${episodeId}/reviews?page=3`)
+      .expect(200);
+
+    expect(response.body.episodeReviews).toBeInstanceOf(Array);
+    expect(response.body.episodeReviews.length).toBe(0);
+  });
+
   test('should return 400 when page is less than 1', async () => {
     const response = await request(app.getHttpServer())
       .get(`/episodes/${episodeId}/reviews?page=0`)
+      .expect(400);
+
+    expect(response.body.message).toBe('Validation failed');
+  });
+
+  test('should return 400 when episodeId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/invalid-uuid/reviews?page=1`)
       .expect(400);
 
     expect(response.body.message).toBe('Validation failed');

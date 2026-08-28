@@ -42,11 +42,13 @@ describe('Create Episode Review (E2E)', () => {
   });
 
   test('should create an episode review when payload is valid', async () => {
+    const focusSessionId = randomUUID();
+
     const response = await request(app.getHttpServer())
       .post(`/episodes/${episodeId}/reviews`)
       .send({
         result: 'Some result',
-        focusSessionId: randomUUID(),
+        focusSessionId,
       })
       .expect(201);
 
@@ -57,10 +59,47 @@ describe('Create Episode Review (E2E)', () => {
     });
 
     expect(reviewOnDatabase).toBeTruthy();
-    expect(response.body).toMatchObject({
+    expect(response.body).toEqual({
+      id: expect.any(String),
       episodeId,
       result: 'Some result',
-      focusSessionId: expect.any(String) as string,
+      reviewAt: expect.any(String),
+      focusSessionId,
+    });
+  });
+
+  test('should create an episode review when focusSessionId is omitted', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: 'Some result without focus session',
+      })
+      .expect(201);
+
+    expect(response.body).toEqual({
+      id: expect.any(String),
+      episodeId,
+      result: 'Some result without focus session',
+      reviewAt: expect.any(String),
+      focusSessionId: null,
+    });
+  });
+
+  test('should create an episode review when focusSessionId is null', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: 'Some result with null focus session',
+        focusSessionId: null,
+      })
+      .expect(201);
+
+    expect(response.body).toEqual({
+      id: expect.any(String),
+      episodeId,
+      result: 'Some result with null focus session',
+      reviewAt: expect.any(String),
+      focusSessionId: null,
     });
   });
 
@@ -80,6 +119,42 @@ describe('Create Episode Review (E2E)', () => {
       .post(`/episodes/${episodeId}/reviews`)
       .send({
         result: '   ',
+        focusSessionId: randomUUID(),
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 400 when result exceeds 500 characters', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: 'a'.repeat(501),
+        focusSessionId: randomUUID(),
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 400 when focusSessionId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/${episodeId}/reviews`)
+      .send({
+        result: 'Some result',
+        focusSessionId: 'invalid-uuid',
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 400 when episodeId is not a uuid', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/episodes/invalid-uuid/reviews`)
+      .send({
+        result: 'Some result',
         focusSessionId: randomUUID(),
       })
       .expect(400);
