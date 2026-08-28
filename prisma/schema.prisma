@@ -29,6 +29,19 @@ model Episode {
   @@map("episodes")
 }
 
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  avatarUrl    String?
+  role         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stacks Stack[]
+}
+
 model Stack {
   id        String   @id @default(uuid())
   name      String
@@ -36,6 +49,9 @@ model Stack {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   episodes Episode[]
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("stacks")
 }
