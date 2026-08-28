@@ -40,6 +40,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   stacks Stack[]
+
+  // TODO: @@map("users")
 }
 
 model Stack {
