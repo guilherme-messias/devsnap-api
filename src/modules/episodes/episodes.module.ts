@@ -10,8 +10,6 @@ import { UpdateEpisodeController } from './controllers/update-episode.controller
 import { UpdateEpisodeService } from './services/update-episode.service';
 import { DeleteEpisodeByIdController } from './controllers/delete-episode-by-id.controller';
 import { DeleteEpisodeByIdService } from './services/delete-episode-by-id.service';
-import { MarkEpisodeAsReviewedController } from './controllers/mark-episode-as-reviewed.controller';
-import { MarkEpisodeAsReviewedService } from './services/mark-episode-as-reviewed.service';
 
 @Module({
   controllers: [
@@ -20,7 +18,6 @@ import { MarkEpisodeAsReviewedService } from './services/mark-episode-as-reviewe
     FetchEpisodeByIdController,
     UpdateEpisodeController,
     DeleteEpisodeByIdController,
-    MarkEpisodeAsReviewedController,
   ],
   imports: [PrismaModule],
   providers: [
@@ -29,7 +26,6 @@ import { MarkEpisodeAsReviewedService } from './services/mark-episode-as-reviewe
     FetchEpisodeByIdService,
     UpdateEpisodeService,
     DeleteEpisodeByIdService,
-    MarkEpisodeAsReviewedService,
   ],
 })
 export class EpisodesModule {}

@@ -22,7 +22,6 @@ export const episodeResponseSchema = z.object({
   error: z.string(),
   solution: z.string(),
   annotations: z.array(annotationResponseSchema),
-  reviewed: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
