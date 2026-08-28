@@ -3,11 +3,13 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Update Stack (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
+  let userId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -19,15 +21,21 @@ describe('Update Stack (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const user = await createTestUser(prisma);
+    userId = user.id;
   });
 
   afterAll(async () => {
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 
   test('should update a stack when payload is valid', async () => {
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
 
     const response = await request(app.getHttpServer())
@@ -42,7 +50,9 @@ describe('Update Stack (E2E)', () => {
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
 
     const response = await request(app.getHttpServer())
@@ -57,7 +67,9 @@ describe('Update Stack (E2E)', () => {
   });
 
   test('should return 404 when stack does not exist', async () => {
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
 
     const nonExistentStackId = '00000000-0000-0000-0000-000000000000';
@@ -77,7 +89,9 @@ describe('Update Stack (E2E)', () => {
   });
 
   test('should return 400 when name is empty', async () => {
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
 
     const response = await request(app.getHttpServer())

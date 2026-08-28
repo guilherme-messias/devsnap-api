@@ -4,6 +4,7 @@ import { AppModule } from '@src/app.module';
 import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Create Episode Review (E2E)', () => {
   let app: INestApplication;
@@ -21,7 +22,10 @@ describe('Create Episode Review (E2E)', () => {
 
     await app.init();
 
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const user = await createTestUser(prisma);
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId: user.id },
+    });
     const episode = await prisma.episode.create({
       data: {
         title: 'Test Episode',
@@ -38,6 +42,7 @@ describe('Create Episode Review (E2E)', () => {
     await prisma.episodeReview.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 

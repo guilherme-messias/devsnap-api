@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { AppModule } from '@src/app.module';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Update Episode (E2E)', () => {
   let app: INestApplication;
@@ -21,9 +22,11 @@ describe('Update Episode (E2E)', () => {
 
     await app.init();
 
+    const user = await createTestUser(prisma);
+
     const [sourceStack, targetStack] = await Promise.all([
-      prisma.stack.create({ data: { name: 'Node.js' } }),
-      prisma.stack.create({ data: { name: 'TypeScript' } }),
+      prisma.stack.create({ data: { name: 'Node.js', userId: user.id } }),
+      prisma.stack.create({ data: { name: 'TypeScript', userId: user.id } }),
     ]);
     sourceStackId = sourceStack.id;
     targetStackId = targetStack.id;
@@ -32,6 +35,7 @@ describe('Update Episode (E2E)', () => {
   afterAll(async () => {
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 

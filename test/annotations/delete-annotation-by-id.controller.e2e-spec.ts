@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import request from 'supertest';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Delete Annotation By Id (E2E)', () => {
   let app: INestApplication;
@@ -22,7 +23,10 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     await app.init();
 
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const user = await createTestUser(prisma);
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId: user.id },
+    });
     stackId = stack.id;
 
     const episode = await prisma.episode.create({
@@ -48,6 +52,7 @@ describe('Delete Annotation By Id (E2E)', () => {
     await prisma.annotation.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 

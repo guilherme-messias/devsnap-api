@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Fetch Recent Stacks (E2E)', () => {
   let app: INestApplication;
@@ -20,12 +21,15 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
     await app.init();
 
-    await prisma.stack.create({ data: { name: 'Node.js' } });
-    await prisma.stack.create({ data: { name: 'Python' } });
+    const user = await createTestUser(prisma);
+
+    await prisma.stack.create({ data: { name: 'Node.js', userId: user.id } });
+    await prisma.stack.create({ data: { name: 'Python', userId: user.id } });
   });
 
   afterAll(async () => {
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 

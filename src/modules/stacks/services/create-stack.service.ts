@@ -7,11 +7,12 @@ export class CreateStackService {
   constructor(private prisma: PrismaService) {}
 
   async createStack(data: CreateStackDto) {
-    const { name } = data;
+    const { name, userId } = data;
 
     const stack = await this.prisma.stack.create({
       data: {
         name,
+        userId,
       },
     });
 

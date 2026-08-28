@@ -3,11 +3,13 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Delete Stack By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
+  let userId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -20,12 +22,18 @@ describe('Delete Stack By Id (E2E)', () => {
 
     await app.init();
 
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const user = await createTestUser(prisma);
+    userId = user.id;
+
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 
@@ -39,7 +47,9 @@ describe('Delete Stack By Id (E2E)', () => {
   });
 
   test('should delete the stack and its associated episodes', async () => {
-    const stack = await prisma.stack.create({ data: { name: 'React' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'React', userId },
+    });
     const episode = await prisma.episode.create({
       data: {
         title: 'React Episode',

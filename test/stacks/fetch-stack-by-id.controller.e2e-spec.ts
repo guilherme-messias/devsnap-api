@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Fetch Stack By Id (E2E)', () => {
   let app: INestApplication;
@@ -20,12 +21,16 @@ describe('Fetch Stack By Id (E2E)', () => {
 
     await app.init();
 
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const user = await createTestUser(prisma);
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId: user.id },
+    });
     stackId = stack.id;
   });
 
   afterAll(async () => {
     await prisma.stack.deleteMany({});
+    await prisma.user.deleteMany();
     await app.close();
   });
 

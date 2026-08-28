@@ -29,7 +29,7 @@ export class CreateStackController {
   })
   @UsePipes(new ZodValidationPipe(createStackSchema))
   async createStack(@Body() body: CreateStackDto) {
-    const { name } = body;
-    return this.createStackService.createStack({ name });
+    const { name, userId } = body;
+    return this.createStackService.createStack({ name, userId });
   }
 }

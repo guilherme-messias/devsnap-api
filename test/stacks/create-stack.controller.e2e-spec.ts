@@ -3,10 +3,12 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Create Stack (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let userId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -17,6 +19,9 @@ describe('Create Stack (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const user = await createTestUser(prisma);
+    userId = user.id;
   });
 
   afterEach(async () => {
@@ -25,17 +30,19 @@ describe('Create Stack (E2E)', () => {
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany();
     await app.close();
   });
 
   test('should create a stack when payload is valid', async () => {
     const response = await request(app.getHttpServer())
       .post('/stacks')
-      .send({ name: 'Node.js' })
+      .send({ name: 'Node.js', userId })
       .expect(201);
 
     expect(response.body).toMatchObject({
       name: 'Node.js',
+      userId,
     });
     expect(response.body.id).toEqual(expect.any(String));
 
@@ -46,6 +53,7 @@ describe('Create Stack (E2E)', () => {
     expect(stackOnDatabase).toMatchObject({
       id: response.body.id,
       name: 'Node.js',
+      userId,
     });
   });
 

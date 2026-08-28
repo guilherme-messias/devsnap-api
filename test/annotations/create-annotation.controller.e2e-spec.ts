@@ -5,6 +5,7 @@ import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { randomUUID } from 'crypto';
 import { Episode, Stack } from '@prisma/client';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Create Annotation (E2E)', () => {
   let app: INestApplication;
@@ -21,10 +22,13 @@ describe('Create Annotation (E2E)', () => {
 
     await app.init();
 
+    const user = await createTestUser(prisma);
+
     stack = await prisma.stack.create({
       data: {
         id: randomUUID() as string,
         name: 'Stack 1',
+        userId: user.id,
       },
     });
 
@@ -44,6 +48,7 @@ describe('Create Annotation (E2E)', () => {
   afterAll(async () => {
     await prisma.episode.deleteMany();
     await prisma.stack.deleteMany();
+    await prisma.user.deleteMany();
     await prisma.annotation.deleteMany();
     await app.close();
   });

@@ -4,6 +4,7 @@ import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
+import { createTestUser } from '../helpers/create-test-user';
 
 describe('Delete Last Episode Review Controller (E2E)', () => {
   let app: INestApplication;
@@ -11,6 +12,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   let stackId: string;
   let episodeId: string;
   let episodeReviewId: string;
+  let userId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -22,10 +24,15 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
+
+    const user = await createTestUser(prisma);
+    userId = user.id;
   });
 
   beforeEach(async () => {
-    const stack = await prisma.stack.create({ data: { name: 'Node.js' } });
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
     stackId = stack.id;
 
     const episode = await prisma.episode.create({
@@ -45,6 +52,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany();
     await app.close();
   });
 
