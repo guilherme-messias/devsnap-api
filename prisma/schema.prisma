@@ -41,7 +41,7 @@ model User {
 
   stacks Stack[]
 
-  // TODO: @@map("users")
+  @@map("users")
 }
 
 model Stack {
