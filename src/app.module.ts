@@ -8,6 +8,7 @@ import { StacksModule } from './modules/stacks/stacks.module';
 import { AnnotationsModule } from './modules/annotations/annotations.module';
 import { EpisodeReviewsModule } from './modules/episode-reviews/episode-reviews.module';
 import { UsersModule } from './modules/users/users.module';
+import { JwtModule } from './infrastructure/jwt/jwt.module';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { UsersModule } from './modules/users/users.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    PrismaModule,
+    JwtModule,
     EpisodesModule,
     StacksModule,
-    PrismaModule,
     AnnotationsModule,
     EpisodeReviewsModule,
     UsersModule,
