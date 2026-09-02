@@ -8,13 +8,19 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     PassportModule,
     JwtNestModule.registerAsync({
-      useFactory: async (configService: ConfigService) => ({
-        publicKey: configService.get('JWT_PUBLIC_KEY'),
-        privateKey: configService.get('JWT_PRIVATE_KEY'),
-        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN') },
-        //TODO: adicionar return
-      }),
       inject: [ConfigService],
+      global: true,
+      useFactory: async (configService: ConfigService) => ({
+        publicKey: Buffer.from(
+          configService.get('JWT_PUBLIC_KEY'),
+          'base64',
+        ).toString('utf-8'),
+        privateKey: Buffer.from(
+          configService.get('JWT_PRIVATE_KEY'),
+          'base64',
+        ).toString('utf-8'),
+        signOptions: { algorithm: 'RS256' },
+      }),
     }),
   ],
   providers: [JwtService],
