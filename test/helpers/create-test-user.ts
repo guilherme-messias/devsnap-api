@@ -1,12 +1,20 @@
+import * as argon2 from 'argon2';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'node:crypto';
 
-export async function createTestUser(prisma: PrismaService) {
-  return prisma.user.create({
+export async function createTestUser(
+  prisma: PrismaService,
+  password,
+) {
+  const passwordHash = await argon2.hash(password);
+
+  const user = await prisma.user.create({
     data: {
       name: 'Test User',
       email: `${randomUUID()}@test.com`,
-      passwordHash: 'test-password-hash',
+      passwordHash,
     },
   });
+
+  return { user, password };
 }

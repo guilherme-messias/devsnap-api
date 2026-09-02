@@ -2,7 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
-import { createTestUser } from '../helpers/create-test-user';
 import request from 'supertest';
 
 describe('Create User (E2E)', () => {
@@ -19,8 +18,6 @@ describe('Create User (E2E)', () => {
     prisma = moduleRef.get(PrismaService);
 
     await app.init();
-
-    const user = await createTestUser(prisma);
   });
 
   afterAll(async () => {

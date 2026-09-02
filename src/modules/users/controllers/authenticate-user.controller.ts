@@ -1,5 +1,12 @@
 import { AuthenticateUserService } from '../services/authenticate-user.service';
-import { Controller, Post, Body, HttpCode, UsePipes } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  UsePipes,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthenticateUserResponseDto } from './schemas/response/authenticate-user.response.schema';
 import { EmailOrPasswordInvalidErrorResponseDto } from '@src/shared/http/schemas/response/email-or-password-invalid.response.schema';
@@ -35,6 +42,15 @@ export class AuthenticateUserController {
   async authenticateUser(@Body() body: AuthenticateUserDto) {
     const { email, password } = body;
 
-    return this.authenticateUserService.authenticateUser({ email, password });
+    const result = await this.authenticateUserService.authenticateUser({
+      email,
+      password,
+    });
+
+    if (!result) {
+      throw new UnauthorizedException('Email or password invalid');
+    }
+
+    return result;
   }
 }
