@@ -23,18 +23,18 @@ export class AuthenticateUserService {
       return null;
     }
 
-    const passwordHash = await argon2.verify(user.passwordHash, password);
+    const passwordMatch = await argon2.verify(user.passwordHash, password);
 
-    if (!passwordHash) {
+    if (!passwordMatch) {
       return null;
     }
 
-    const token = await this.jwt.sign({
+    const accessToken = await this.jwt.sign({
       sub: user.id,
     });
 
     return {
-      token,
+      accessToken,
     };
   }
 }
