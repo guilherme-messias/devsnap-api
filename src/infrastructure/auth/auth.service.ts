@@ -13,12 +13,18 @@ export class AuthService {
     const payload = { sub: userId, email };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
-        privateKey: process.env.JWT_PRIVATE_KEY,
+        privateKey: Buffer.from(
+          process.env.JWT_PRIVATE_KEY as string,
+          'base64',
+        ).toString('utf-8'),
         algorithm: 'RS256',
         expiresIn: '15m',
       }),
       this.jwt.signAsync(payload, {
-        privateKey: process.env.JWT_PRIVATE_KEY,
+        privateKey: Buffer.from(
+          process.env.JWT_PRIVATE_KEY as string,
+          'base64',
+        ).toString('utf-8'),
         algorithm: 'RS256',
         expiresIn: '7d',
       }),
