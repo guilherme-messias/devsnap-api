@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtService } from './jwt.service';
+import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule as JwtNestModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -19,11 +19,11 @@ import { ConfigService } from '@nestjs/config';
           configService.get('JWT_PRIVATE_KEY'),
           'base64',
         ).toString('utf-8'),
-        signOptions: { algorithm: 'RS256' },
+        signOptions: { algorithm: 'RS256', expiresIn: '15m' },
       }),
     }),
   ],
-  providers: [JwtService],
-  exports: [JwtService],
+  providers: [AuthService],
+  exports: [AuthService],
 })
-export class JwtModule {}
+export class AuthModule {}

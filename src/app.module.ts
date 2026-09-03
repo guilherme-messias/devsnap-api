@@ -8,7 +8,7 @@ import { StacksModule } from './modules/stacks/stacks.module';
 import { AnnotationsModule } from './modules/annotations/annotations.module';
 import { EpisodeReviewsModule } from './modules/episode-reviews/episode-reviews.module';
 import { UsersModule } from './modules/users/users.module';
-import { JwtModule } from './infrastructure/jwt/jwt.module';
+import { AuthModule } from './infrastructure/auth/auth.module';
 
 @Module({
   imports: [
@@ -17,7 +17,7 @@ import { JwtModule } from './infrastructure/jwt/jwt.module';
       envFilePath: '.env',
     }),
     PrismaModule,
-    JwtModule,
+    AuthModule,
     EpisodesModule,
     StacksModule,
     AnnotationsModule,
