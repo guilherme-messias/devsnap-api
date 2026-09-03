@@ -44,10 +44,13 @@ describe('Create User (E2E)', () => {
     });
 
     expect(userOnDatabase).toBeTruthy();
+    expect(userOnDatabase?.hashedRefreshToken).toBeNull();
     expect(response.body).toMatchObject({
       name: 'Test User',
       email: 'test@example.com',
     });
+    expect(response.body).not.toHaveProperty('hashedRefreshToken');
+    expect(response.body).not.toHaveProperty('passwordHash');
   });
 
   test('should return 400 when payload is invalid', async () => {

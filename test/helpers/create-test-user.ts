@@ -13,6 +13,7 @@ export async function createTestUser(
       name: 'Test User',
       email: `${randomUUID()}@test.com`,
       passwordHash,
+      hashedRefreshToken: null,
     },
   });
 

@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import argon2 from 'argon2';
 import request from 'supertest';
 
 describe('Authenticate User (E2E)', () => {
@@ -41,6 +42,7 @@ describe('Authenticate User (E2E)', () => {
 
     expect(response.body).toMatchObject({
       accessToken: expect.any(String),
+      refreshToken: expect.any(String),
     });
 
     const userOnDatabase = await prisma.user.findUnique({
@@ -50,6 +52,13 @@ describe('Authenticate User (E2E)', () => {
     });
 
     expect(userOnDatabase).toBeTruthy();
+    expect(userOnDatabase?.hashedRefreshToken).toBeTruthy();
+    expect(
+      await argon2.verify(
+        userOnDatabase!.hashedRefreshToken!,
+        response.body.refreshToken,
+      ),
+    ).toBe(true);
   });
 
   test('should return 401 when password is invalid', async () => {

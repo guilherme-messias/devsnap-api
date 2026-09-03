@@ -5,8 +5,10 @@ import { JwtModule as JwtNestModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from '../jwt/jwt.strategy';
 import { RefreshTokenStrategy } from '../jwt/refresh-token.strategy';
+import { PrismaModule } from '../prisma/prisma.module';
 @Module({
   imports: [
+    PrismaModule,
     PassportModule,
     JwtNestModule.registerAsync({
       inject: [ConfigService],

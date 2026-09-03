@@ -27,8 +27,15 @@ export class CreateUserService {
         name,
         email,
         passwordHash,
+        hashedRefreshToken: null,
         avatarUrl,
         role,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
       },
     });
 
