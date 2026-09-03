@@ -2,16 +2,19 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
-
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor() {
+  constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env.JWT_PUBLIC_KEY as string,
+      secretOrKey: Buffer.from(
+        configService.get('JWT_PUBLIC_KEY'),
+        'base64',
+      ).toString('utf-8'),
       algorithms: ['RS256'],
       passReqToCallback: true,
     });

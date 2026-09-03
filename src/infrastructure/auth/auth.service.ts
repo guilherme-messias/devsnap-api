@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async generateToken(userId: string, email: string) {
@@ -14,7 +16,7 @@ export class AuthService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
         privateKey: Buffer.from(
-          process.env.JWT_PRIVATE_KEY as string,
+          this.configService.get('JWT_PRIVATE_KEY'),
           'base64',
         ).toString('utf-8'),
         algorithm: 'RS256',
@@ -22,7 +24,7 @@ export class AuthService {
       }),
       this.jwt.signAsync(payload, {
         privateKey: Buffer.from(
-          process.env.JWT_PRIVATE_KEY as string,
+          this.configService.get('JWT_PRIVATE_KEY'),
           'base64',
         ).toString('utf-8'),
         algorithm: 'RS256',
