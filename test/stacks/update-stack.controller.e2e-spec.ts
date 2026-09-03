@@ -22,7 +22,7 @@ describe('Update Stack (E2E)', () => {
 
     await app.init();
 
-    const user = await createTestUser(prisma);
+    const { user } = await createTestUser(prisma, '12345678');
     userId = user.id;
   });
 

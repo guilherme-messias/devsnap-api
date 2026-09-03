@@ -21,7 +21,7 @@ describe('Create Episode (E2E)', () => {
 
     await app.init();
 
-    const user = await createTestUser(prisma);
+    const { user } = await createTestUser(prisma, '12345678');
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });

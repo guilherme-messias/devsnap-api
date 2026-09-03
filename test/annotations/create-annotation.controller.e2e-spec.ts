@@ -22,7 +22,7 @@ describe('Create Annotation (E2E)', () => {
 
     await app.init();
 
-    const user = await createTestUser(prisma);
+    const { user } = await createTestUser(prisma, '12345678');
 
     stack = await prisma.stack.create({
       data: {
