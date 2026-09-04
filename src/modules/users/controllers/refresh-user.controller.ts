@@ -16,13 +16,7 @@ import {
 import { RefreshUserResponseDto } from './schemas/response/refresh-user.response.schema';
 import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
 import { AuthGuard } from '@nestjs/passport';
-
-interface RequestWithUser extends Request {
-  user: {
-    sub: string;
-    refreshToken: string;
-  };
-}
+import { type RequestWithUser } from './types/request-with-user';
 
 @ApiTags('users')
 @Controller('/auth')
