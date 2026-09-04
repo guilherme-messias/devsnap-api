@@ -1,0 +1,38 @@
+---
+description: Padrões de controllers — o que o autor já domina vs o que deve ficar só como stub (sem comentários didáticos)
+globs: src/modules/**/controllers/**/*.ts,src/modules/**/controllers/**/*.schema.ts,src/modules/**/controllers/**/*.request.ts
+alwaysApply: false
+---
+
+# Controllers — regra do agente
+
+## Faça (dominado)
+
+- 1 arquivo = 1 use case; service injetado; controller fino (HTTP ↔ service)
+- Zod + `ZodValidationPipe` (body/`UsePipes`, param, query) — nunca `ParseUUIDPipe` / class-validator
+- Schemas `createZodDto` em `schemas/request` e `schemas/response`
+- Swagger: `@ApiTags`, `@ApiOperation`, `@ApiResponse`, `@ApiParam`/`@ApiQuery`
+- HttpCode: create `201`, get/patch `200`, delete `204`
+- Not found: `if (!entity) throw new NotFoundException(...)`
+- Auth login: `UnauthorizedException` quando service retorna falsy
+- Paginação `page` com o schema Zod já repetido nos fetch-recent (`perPage = 1`)
+- Registrar no `*.module.ts`
+- Espelhar um controller irmão (preferência: `stacks`)
+
+## NÃO faça — deixe stub estrutural (sem implementar)
+
+- `@UseGuards(AuthGuard(...))`, `@ApiBearerAuth`, roles
+- Extrair `req.user` / `@CurrentUser()` / mapear `sub` → `userId`
+- Cookies, `@Res()`, upload/multipart, interceptors, throttle/cache
+- Fechar rotas de recurso com JWT access token (hoje são públicas no controller)
+- Inventar error-mapping novo além de NotFound / Unauthorized / BadRequest via Zod
+
+## Como stubar trechos inéditos
+
+- **No código:** só estrutura mínima compilável (assinatura, placeholders vazios, `throw new Error('TODO')` se precisar). Sem blocos `PONTO INÉDITO`, sem comentários didáticos, sem setas `←`, sem explicar o “porquê” inline.
+- **No chat:** diga o que falta implementar, quais contratos/DTOs entram em jogo, e aponte arquivos/docs de referência. O raciocínio do core fica com o autor.
+- **Não espelhar** o estilo de comentários de `refresh-user.controller.ts` em arquivos novos.
+
+## Dúvida?
+
+Trate como **não dominado** → stub estrutural + orientação no chat; não implemente o core.

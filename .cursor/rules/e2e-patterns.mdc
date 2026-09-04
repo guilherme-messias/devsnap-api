@@ -1,0 +1,43 @@
+---
+description: Padrões de testes E2E — o que o autor já domina vs o que deve ficar só como stub (sem comentários didáticos)
+globs: test/**/*.e2e-spec.ts,test/helpers/**/*.ts,test/setup-e2e.ts
+alwaysApply: false
+---
+
+# E2E — regra do agente
+
+## Faça (dominado)
+
+- 1 spec = 1 controller: `test/<module>/<action>-<resource>.controller.e2e-spec.ts`
+- `describe('Action Resource (E2E)')`
+- Bootstrap: `Test.createTestingModule({ imports: [AppModule] })` → `createNestApplication()` → `PrismaService` → `app.init()`
+- Seed/cleanup com Prisma; user via `createTestUser(prisma, '12345678')`
+- HTTP: `request(app.getHttpServer()).method(path).send(...).expect(status)`
+- Casos típicos: sucesso + `400` Validation failed + `404` quando o controller trata not found
+- Delete: `204` + `findUnique` → `null`
+- Fetch recent: paginação, default page, vazio, page inválida
+- IDs: inexistente `00000000-0000-0000-0000-000000000000`; inválido `invalid-uuid`
+- `afterAll`: `deleteMany` (filhos → pais) + `app.close()`
+- Espelhar `test/stacks/*.controller.e2e-spec.ts`
+- Não mexer em `test/setup-e2e.ts` por feature (schema isolado já existe)
+
+## NÃO faça — deixe stub estrutural (sem implementar)
+
+- `.set('Authorization', 'Bearer ...')` / helper de login para specs autenticados
+- E2E de `POST /auth/refresh` (ainda não existe no padrão do autor)
+- Cookies / cookie jar / CSRF
+- Upload multipart (`.attach`)
+- `overrideProvider`, mocks de service, spies no lugar do AppModule real
+- Factories compartilhadas novas (`createTestStack`, etc.) — seed fica inline
+- Testes de role/ownership (user A vs user B)
+- Reconfigurar pipes/Swagger/global prefix na app do teste
+
+## Como stubar trechos inéditos
+
+- **No código:** só esqueleto do `describe`/`it` ou `it.todo` / corpo vazio mínimo. Sem blocos `PONTO INÉDITO`, sem comentários didáticos explicando auth, cookies, multipart, etc.
+- **No chat:** diga quais casos faltam, o que o autor precisa cobrir, e aponte specs/helpers/docs de referência. O raciocínio do core fica com o autor.
+- **Não espelhar** o estilo de comentários de `refresh-user.controller.ts` em specs novos.
+
+## Dúvida?
+
+Trate como **não dominado** → stub estrutural + orientação no chat; não implemente o core.
