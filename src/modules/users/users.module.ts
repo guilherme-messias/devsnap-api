@@ -9,12 +9,15 @@ import { RefreshUserController } from './controllers/refresh-user.controller';
 import { RefreshUserService } from './services/refresh-user.service';
 import { LogoutUserController } from './controllers/logout-user.controller';
 import { LogoutUserService } from './services/logout-user.service';
+import { GetUserProfileService } from './services/get-user-profile.service';
+import { GetUserProfileController } from './controllers/get-user-profile.controller';
 @Module({
   controllers: [
     CreateUserController,
     AuthenticateUserController,
     RefreshUserController,
     LogoutUserController,
+    GetUserProfileController,
   ],
   imports: [PrismaModule, AuthModule],
   providers: [
@@ -22,6 +25,7 @@ import { LogoutUserService } from './services/logout-user.service';
     AuthenticateUserService,
     RefreshUserService,
     LogoutUserService,
+    GetUserProfileService,
   ],
 })
 export class UsersModule {}
