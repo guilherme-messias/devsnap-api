@@ -51,4 +51,27 @@ describe('Logout User Controller (E2E)', () => {
 
     expect(user?.hashedRefreshToken).toBeNull();
   });
+
+  test('should return 401 when authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .expect(401);
+
+    expect(response.body).toEqual({
+      statusCode: 401,
+      message: 'Unauthorized',
+    });
+  });
+
+  test('should return 401 when authorization header is invalid', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Authorization', 'Bearer invalid-token')
+      .expect(401);
+
+    expect(response.body).toEqual({
+      statusCode: 401,
+      message: 'Unauthorized',
+    });
+  });
 });

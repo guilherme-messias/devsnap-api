@@ -74,8 +74,11 @@ describe('Get User Profile Controller (E2E)', () => {
       .set('Authorization', `Bearer ${refreshToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body.message).toBe('User not found');
+    expect(response.body).toEqual({
+      statusCode: 404,
+      message: 'User not found',
+      error: 'Not Found',
+    });
   });
 
   test('should return 401 when the authorization header is missing', async () => {

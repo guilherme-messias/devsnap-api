@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { LogoutUserService } from '../services/logout-user.service';
-import { TokenExpiredErrorResponseDto } from '@src/shared/http/schemas/response/token-expired-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 
 @ApiTags('users')
 @Controller('/auth')
@@ -21,15 +21,15 @@ export class LogoutUserController {
   @ApiOperation({
     summary: 'Logout user',
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Token expired',
-    type: TokenExpiredErrorResponseDto,
-  })
   @ApiBearerAuth()
   @ApiResponse({
     status: 204,
     description: 'User logged out successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
   })
   async logoutUser(@Req() req: RequestWithUser) {
     const userId = req.user.sub;

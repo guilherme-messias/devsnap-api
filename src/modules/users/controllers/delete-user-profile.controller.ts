@@ -11,7 +11,8 @@ import { ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from './types/request-with-user';
 import { DeleteUserProfileService } from '../services/delete-user-profile.service';
-import { UnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/unauthorized-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { UserNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/user-not-found-error.response.schema';
 
 @ApiTags('users')
 @Controller('/users')
@@ -31,12 +32,13 @@ export class DeleteUserProfileController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized',
-    type: UnauthorizedErrorResponseDto,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
+    type: UserNotFoundErrorResponseDto,
   })
   async deleteUserProfile(@Req() req: RequestWithUser) {
     const userId = req.user.sub;

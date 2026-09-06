@@ -8,7 +8,8 @@ import {
 import { GetUserProfileService } from '../services/get-user-profile.service';
 import type { RequestWithUser } from './types/request-with-user';
 import { UserProfileResponseDto } from './schemas/response/get-user-profile.response.schema';
-import { UnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/unauthorized-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { UserNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/user-not-found-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { UseGuards } from '@nestjs/common';
 
@@ -28,12 +29,13 @@ export class GetUserProfileController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized',
-    type: UnauthorizedErrorResponseDto,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
   })
   @ApiResponse({
     status: 404,
     description: 'User not found',
+    type: UserNotFoundErrorResponseDto,
   })
   async getUserProfile(@Req() req: RequestWithUser) {
     const userId = req.user.sub;

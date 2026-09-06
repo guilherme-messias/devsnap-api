@@ -46,9 +46,14 @@ describe('Create User (E2E)', () => {
     expect(userOnDatabase).toBeTruthy();
     expect(userOnDatabase?.hashedRefreshToken).toBeNull();
     expect(response.body).toMatchObject({
+      id: userOnDatabase?.id,
       name: 'Test User',
       email: 'test@example.com',
+      createdAt: expect.any(String),
     });
+    expect(new Date(response.body.createdAt).toISOString()).toBe(
+      response.body.createdAt,
+    );
     expect(response.body).not.toHaveProperty('hashedRefreshToken');
     expect(response.body).not.toHaveProperty('passwordHash');
   });

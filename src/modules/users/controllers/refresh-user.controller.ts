@@ -12,16 +12,22 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { RefreshUserResponseDto } from './schemas/response/refresh-user.response.schema';
 import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
-import { TokenExpiredErrorResponseDto } from '@src/shared/http/schemas/response/token-expired-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { type RequestWithUser } from './types/request-with-user';
 
 @ApiTags('users')
 @Controller('/auth')
 @UseGuards(AuthGuard('jwt-refresh'))
+@ApiExtraModels(
+  JwtUnauthorizedErrorResponseDto,
+  RefreshTokenInvalidErrorResponseDto,
+)
 export class RefreshUserController {
   constructor(private readonly refreshUserService: RefreshUserService) {}
   @Post('refresh')
@@ -37,13 +43,14 @@ export class RefreshUserController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Refresh token invalid',
-    type: RefreshTokenInvalidErrorResponseDto,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Token expired',
-    type: TokenExpiredErrorResponseDto,
+    description:
+      'Missing, invalid, or expired JWT; or refresh token invalid for the user',
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(JwtUnauthorizedErrorResponseDto) },
+        { $ref: getSchemaPath(RefreshTokenInvalidErrorResponseDto) },
+      ],
+    },
   })
   async refreshUser(@Req() req: RequestWithUser) {
     const userId = req.user.sub;
