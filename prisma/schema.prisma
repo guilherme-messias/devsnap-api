@@ -22,9 +22,10 @@ model Episode {
 
   annotations Annotation[]
 
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
-  episodeReviews EpisodeReview[]
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  episodeReviews     EpisodeReview[]
+  focusSessionItems  FocusSessionItem[]
 
   @@map("episodes")
 }
@@ -51,7 +52,8 @@ model Stack {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  episodes Episode[]
+  episodes      Episode[]
+  focusSessions FocusSession[]
 
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -71,12 +73,44 @@ model Annotation {
 }
 
 model EpisodeReview {
-  id             String   @id @default(uuid())
-  episodeId      String   @map("episode_id")
-  episode        Episode  @relation(fields: [episodeId], references: [id], onDelete: Cascade)
-  reviewAt       DateTime @default(now()) @map("review_at")
+  id             String        @id @default(uuid())
+  episodeId      String        @map("episode_id")
+  episode        Episode       @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  reviewAt       DateTime      @default(now()) @map("review_at")
   result         String
-  focusSessionId String?  @map("focus_session_id")
+  focusSessionId String?       @map("focus_session_id")
+  focusSession   FocusSession? @relation(fields: [focusSessionId], references: [id], onDelete: SetNull)
 
   @@map("episode_reviews")
+}
+
+model FocusSession {
+  id           String    @id @default(uuid())
+  stackId      String    @map("stack_id")
+  stack        Stack     @relation(fields: [stackId], references: [id], onDelete: Cascade)
+  status       String    @default("in_progress")
+  currentIndex Int       @default(0) @map("current_index")
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  items          FocusSessionItem[]
+  episodeReviews EpisodeReview[]
+
+  @@map("focus_sessions")
+}
+
+model FocusSessionItem {
+  id             String    @id @default(uuid())
+  focusSessionId String    @map("focus_session_id")
+  focusSession   FocusSession @relation(fields: [focusSessionId], references: [id], onDelete: Cascade)
+  episodeId      String    @map("episode_id")
+  episode        Episode   @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  position       Int
+  status         String    @default("pending")
+  answeredAt     DateTime? @map("answered_at")
+
+  @@unique([focusSessionId, episodeId])
+  @@map("focus_session_items")
 }

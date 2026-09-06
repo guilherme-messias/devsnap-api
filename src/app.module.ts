@@ -7,6 +7,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StacksModule } from './modules/stacks/stacks.module';
 import { AnnotationsModule } from './modules/annotations/annotations.module';
 import { EpisodeReviewsModule } from './modules/episode-reviews/episode-reviews.module';
+import { FocusSessionsModule } from './modules/focus-sessions/focus-sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
 
@@ -22,6 +23,7 @@ import { AuthModule } from './infrastructure/auth/auth.module';
     StacksModule,
     AnnotationsModule,
     EpisodeReviewsModule,
+    FocusSessionsModule,
     UsersModule,
   ],
   controllers: [AppController],
