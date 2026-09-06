@@ -21,7 +21,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma, '12345678');
+    const { user } = await createTestUser(prisma);
 
     await prisma.stack.create({ data: { name: 'Node.js', userId: user.id } });
     await prisma.stack.create({ data: { name: 'Python', userId: user.id } });

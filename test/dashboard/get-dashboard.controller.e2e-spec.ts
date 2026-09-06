@@ -53,7 +53,7 @@ describe('Get Dashboard (E2E)', () => {
   });
 
   test('should return dashboard totals and stack progress', async () => {
-    const { user } = await createTestUser(prisma, '12345678');
+    const { user } = await createTestUser(prisma);
 
     const angular = await prisma.stack.create({
       data: { name: 'Angular', userId: user.id },
@@ -148,7 +148,7 @@ describe('Get Dashboard (E2E)', () => {
   });
 
   test('should return 0 progressPercentage when stack has no episodes', async () => {
-    const { user } = await createTestUser(prisma, '12345678');
+    const { user } = await createTestUser(prisma);
 
     const emptyStack = await prisma.stack.create({
       data: { name: 'Empty', userId: user.id },

@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import request from 'supertest';
+import { TEST_USER_PASSWORD } from '../helpers/create-test-user';
 
 describe('Create User (E2E)', () => {
   let app: INestApplication;
@@ -31,7 +32,7 @@ describe('Create User (E2E)', () => {
       .send({
         name: 'Test User',
         email: 'test@example.com',
-        password: '12345678',
+        password: TEST_USER_PASSWORD,
         avatarUrl: 'https://example.com/avatar.png',
         role: 'user',
       })
@@ -80,11 +81,24 @@ describe('Create User (E2E)', () => {
     expect(response.body.message).toEqual('Validation failed');
   });
 
+  test('should return 400 when password is weak', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({
+        name: 'Test User',
+        email: 'weak-password@example.com',
+        password: '12345678',
+      })
+      .expect(400);
+
+    expect(response.body.message).toEqual('Validation failed');
+  });
+
   test('should return 400 when user already exists', async () => {
     const payload = {
       name: 'Duplicate User',
       email: 'duplicate@example.com',
-      password: '12345678',
+      password: TEST_USER_PASSWORD,
     };
 
     await request(app.getHttpServer())

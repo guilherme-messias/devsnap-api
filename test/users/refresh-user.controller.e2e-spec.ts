@@ -29,7 +29,7 @@ describe('Refresh User (E2E)', () => {
 
     await app.init();
 
-    const { user, password } = await createTestUser(prisma, '12345678');
+    const { user, password } = await createTestUser(prisma);
     credentials = { email: user.email, password };
     userId = user.id;
   });

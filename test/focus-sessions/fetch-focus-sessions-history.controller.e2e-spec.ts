@@ -22,7 +22,7 @@ describe('Fetch Focus Sessions History (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma, '12345678');
+    const { user } = await createTestUser(prisma);
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });

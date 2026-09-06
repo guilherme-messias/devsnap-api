@@ -24,7 +24,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma, '12345678');
+    const { user } = await createTestUser(prisma);
     userId = user.id;
   });
 
