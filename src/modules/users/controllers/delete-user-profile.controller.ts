@@ -12,7 +12,6 @@ import { AuthGuard } from '@nestjs/passport';
 import type { RequestWithUser } from './types/request-with-user';
 import { DeleteUserProfileService } from '../services/delete-user-profile.service';
 import { UnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/unauthorized-error.response.schema';
-import { DeleteUserProfileResponseDto } from './schemas/response/delete-user-profile.response.schema';
 
 @ApiTags('users')
 @Controller('/users')
@@ -29,7 +28,6 @@ export class DeleteUserProfileController {
   @ApiResponse({
     status: 204,
     description: 'Current user profile deleted',
-    type: DeleteUserProfileResponseDto,
   })
   @ApiResponse({
     status: 401,
@@ -40,9 +38,7 @@ export class DeleteUserProfileController {
     status: 404,
     description: 'User not found',
   })
-  async deleteUserProfile(
-    @Req() req: RequestWithUser,
-  ): Promise<DeleteUserProfileResponseDto> {
+  async deleteUserProfile(@Req() req: RequestWithUser) {
     const userId = req.user.sub;
 
     const deletedUser =
@@ -50,6 +46,7 @@ export class DeleteUserProfileController {
     if (!deletedUser) {
       throw new NotFoundException('User not found');
     }
-    return deletedUser;
+
+    return;
   }
 }

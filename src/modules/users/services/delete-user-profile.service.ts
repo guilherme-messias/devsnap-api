@@ -14,14 +14,10 @@ export class DeleteUserProfileService {
       return null;
     }
 
-    const deletedUser = await this.prisma.user.delete({
+    await this.prisma.user.delete({
       where: { id: userId },
-      select: {
-        name: true,
-        email: true,
-      },
     });
 
-    return deletedUser;
+    return;
   }
 }
