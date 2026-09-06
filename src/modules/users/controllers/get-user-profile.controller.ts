@@ -9,9 +9,12 @@ import { GetUserProfileService } from '../services/get-user-profile.service';
 import type { RequestWithUser } from './types/request-with-user';
 import { UserProfileResponseDto } from './schemas/response/get-user-profile.response.schema';
 import { UnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/unauthorized-error.response.schema';
+import { AuthGuard } from '@nestjs/passport';
+import { UseGuards } from '@nestjs/common';
 
 @ApiTags('users')
 @Controller('/users')
+@UseGuards(AuthGuard('jwt-refresh'))
 export class GetUserProfileController {
   constructor(private readonly getUserProfileService: GetUserProfileService) {}
 
