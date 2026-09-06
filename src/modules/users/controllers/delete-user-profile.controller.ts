@@ -6,7 +6,6 @@ import { DeleteUserProfileService } from '../services/delete-user-profile.servic
 import { UnauthorizedException } from '@nestjs/common';
 import { ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { UnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/unauthorized-error.response.schema';
-import { UserProfileResponseDto } from './schemas/response/get-user-profile.response.schema';
 
 @ApiTags('users')
 @Controller('/users')
@@ -22,7 +21,6 @@ export class DeleteUserProfileController {
   @ApiResponse({
     status: 200,
     description: 'Current user profile deleted',
-    type: UserProfileResponseDto,
   })
   @ApiResponse({
     status: 401,
