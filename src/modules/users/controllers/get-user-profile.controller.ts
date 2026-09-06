@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Req } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -31,11 +31,15 @@ export class GetUserProfileController {
     description: 'Unauthorized',
     type: UnauthorizedErrorResponseDto,
   })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
+  })
   async getUserProfile(@Req() req: RequestWithUser) {
     const userId = req.user.sub;
     const userProfile = await this.getUserProfileService.getUserProfile(userId);
     if (!userProfile) {
-      throw new UnauthorizedException('User not found');
+      throw new NotFoundException('User not found');
     }
     return userProfile;
   }
