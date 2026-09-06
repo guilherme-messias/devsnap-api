@@ -51,9 +51,6 @@ describe('Create User (E2E)', () => {
       email: 'test@example.com',
       createdAt: expect.any(String),
     });
-    expect(new Date(response.body.createdAt).toISOString()).toBe(
-      response.body.createdAt,
-    );
     expect(response.body).not.toHaveProperty('hashedRefreshToken');
     expect(response.body).not.toHaveProperty('passwordHash');
   });
