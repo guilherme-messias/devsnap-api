@@ -77,4 +77,28 @@ describe('Create User (E2E)', () => {
 
     expect(response.body.message).toEqual('Validation failed');
   });
+
+  test('should return 400 when user already exists', async () => {
+    const payload = {
+      name: 'Duplicate User',
+      email: 'duplicate@example.com',
+      password: '12345678',
+    };
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(payload)
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(payload)
+      .expect(400);
+
+    expect(response.body).toEqual({
+      statusCode: 400,
+      message: 'User already exists',
+      error: 'Bad Request',
+    });
+  });
 });

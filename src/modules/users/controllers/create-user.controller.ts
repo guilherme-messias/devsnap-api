@@ -1,8 +1,16 @@
-import { Controller, Post, HttpCode, UsePipes, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  HttpCode,
+  UsePipes,
+  Body,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserService } from '../services/create-user.service';
 import { CreateUserResponseDto } from './schemas/response/create-user.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { UserAlreadyExistsErrorResponseDto } from '@src/shared/http/schemas/response/user-already-exists-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import {
   CreateUserDto,
@@ -29,16 +37,27 @@ export class CreateUserController {
     description: 'Invalid request body',
     type: ValidationErrorResponseDto,
   })
+  @ApiResponse({
+    status: 400,
+    description: 'User already exists',
+    type: UserAlreadyExistsErrorResponseDto,
+  })
   @UsePipes(new ZodValidationPipe(createUserSchema))
   async createUser(@Body() body: CreateUserDto) {
     const { name, email, password, avatarUrl, role } = body;
 
-    return this.createUserService.createUser({
+    const result = await this.createUserService.createUser({
       name,
       email,
       password,
       avatarUrl: avatarUrl ?? undefined,
       role: role ?? undefined,
     });
+
+    if (!result) {
+      throw new BadRequestException('User already exists');
+    }
+
+    return result;
   }
 }

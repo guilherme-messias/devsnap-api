@@ -17,7 +17,7 @@ export class CreateUserService {
     });
 
     if (existingUser) {
-      null;
+      return null;
     }
 
     const passwordHash = await argon2.hash(password);
