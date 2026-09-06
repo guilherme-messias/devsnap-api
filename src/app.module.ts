@@ -10,6 +10,7 @@ import { EpisodeReviewsModule } from './modules/episode-reviews/episode-reviews.
 import { FocusSessionsModule } from './modules/focus-sessions/focus-sessions.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from './infrastructure/auth/auth.module';
     EpisodeReviewsModule,
     FocusSessionsModule,
     UsersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
