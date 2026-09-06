@@ -11,6 +11,8 @@ import { LogoutUserController } from './controllers/logout-user.controller';
 import { LogoutUserService } from './services/logout-user.service';
 import { GetUserProfileService } from './services/get-user-profile.service';
 import { GetUserProfileController } from './controllers/get-user-profile.controller';
+import { DeleteUserProfileController } from './controllers/delete-user-profile.controller';
+import { DeleteUserProfileService } from './services/delete-user-profile.service';
 @Module({
   controllers: [
     CreateUserController,
@@ -18,6 +20,7 @@ import { GetUserProfileController } from './controllers/get-user-profile.control
     RefreshUserController,
     LogoutUserController,
     GetUserProfileController,
+    DeleteUserProfileController,
   ],
   imports: [PrismaModule, AuthModule],
   providers: [
@@ -26,6 +29,7 @@ import { GetUserProfileController } from './controllers/get-user-profile.control
     RefreshUserService,
     LogoutUserService,
     GetUserProfileService,
+    DeleteUserProfileService,
   ],
 })
 export class UsersModule {}
