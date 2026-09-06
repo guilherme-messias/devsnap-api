@@ -14,10 +14,19 @@ export class DeleteUserProfileService {
       return null;
     }
 
-    await this.prisma.user.delete({
+    const deletedUser = await this.prisma.user.delete({
       where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatarUrl: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     });
 
-    return;
+    return deletedUser;
   }
 }
