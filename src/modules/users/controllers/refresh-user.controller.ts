@@ -15,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { RefreshUserResponseDto } from './schemas/response/refresh-user.response.schema';
 import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
+import { TokenExpiredErrorResponseDto } from '@src/shared/http/schemas/response/token-expired-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { type RequestWithUser } from './types/request-with-user';
 
@@ -38,6 +39,11 @@ export class RefreshUserController {
     status: 401,
     description: 'Refresh token invalid',
     type: RefreshTokenInvalidErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token expired',
+    type: TokenExpiredErrorResponseDto,
   })
   async refreshUser(@Req() req: RequestWithUser) {
     const userId = req.user.sub;
