@@ -32,6 +32,7 @@ describe('Delete User Profile Controller (E2E)', () => {
   });
 
   afterAll(async () => {
+    await prisma.user.deleteMany();
     await app.close();
   });
 

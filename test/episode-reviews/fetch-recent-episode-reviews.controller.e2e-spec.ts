@@ -2,9 +2,9 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
-import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
+import { createTestFocusSession } from '../helpers/create-test-focus-session';
 
 describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   let app: INestApplication;
@@ -44,12 +44,22 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     });
     episodeId = episode.id;
 
+    const focusSession = await createTestFocusSession(prisma, stackId);
+
     await prisma.episodeReview.create({
-      data: { episodeId, result: 'Review 1', focusSessionId: randomUUID() },
+      data: {
+        episodeId,
+        result: 'Review 1',
+        focusSessionId: focusSession.id,
+      },
     });
 
     await prisma.episodeReview.create({
-      data: { episodeId, result: 'Review 2', focusSessionId: randomUUID() },
+      data: {
+        episodeId,
+        result: 'Review 2',
+        focusSessionId: focusSession.id,
+      },
     });
   });
 
@@ -60,6 +70,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   afterEach(async () => {
     await prisma.episodeReview.deleteMany({});
+    await prisma.focusSession.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
   });

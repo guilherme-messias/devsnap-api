@@ -5,6 +5,7 @@ import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
+import { createTestFocusSession } from '../helpers/create-test-focus-session';
 
 describe('Delete Last Episode Review Controller (E2E)', () => {
   let app: INestApplication;
@@ -45,8 +46,14 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
     });
     episodeId = episode.id;
 
+    const focusSession = await createTestFocusSession(prisma, stackId);
+
     const episodeReview = await prisma.episodeReview.create({
-      data: { episodeId, result: 'Review 1', focusSessionId: randomUUID() },
+      data: {
+        episodeId,
+        result: 'Review 1',
+        focusSessionId: focusSession.id,
+      },
     });
     episodeReviewId = episodeReview.id;
   });
@@ -58,6 +65,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
 
   afterEach(async () => {
     await prisma.episodeReview.deleteMany({});
+    await prisma.focusSession.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
   });

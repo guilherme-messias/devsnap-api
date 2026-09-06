@@ -5,11 +5,13 @@ import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
+import { createTestFocusSession } from '../helpers/create-test-focus-session';
 
 describe('Create Episode Review (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let episodeId: string;
+  let focusSessionId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -36,10 +38,14 @@ describe('Create Episode Review (E2E)', () => {
     });
 
     episodeId = episode.id;
+
+    const focusSession = await createTestFocusSession(prisma, stack.id);
+    focusSessionId = focusSession.id;
   });
 
   afterAll(async () => {
     await prisma.episodeReview.deleteMany({});
+    await prisma.focusSession.deleteMany({});
     await prisma.episode.deleteMany({});
     await prisma.stack.deleteMany({});
     await prisma.user.deleteMany();
@@ -47,8 +53,6 @@ describe('Create Episode Review (E2E)', () => {
   });
 
   test('should create an episode review when payload is valid', async () => {
-    const focusSessionId = randomUUID();
-
     const response = await request(app.getHttpServer())
       .post(`/episodes/${episodeId}/reviews`)
       .send({
