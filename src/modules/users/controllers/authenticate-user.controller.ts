@@ -15,6 +15,7 @@ import {
   authenticateUserSchema,
 } from './schemas/request/authenticate-user.request';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 
 @ApiTags('users')
 @Controller('/auth')
@@ -37,6 +38,11 @@ export class AuthenticateUserController {
     status: 401,
     description: 'Email or password invalid',
     type: EmailOrPasswordInvalidErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request body',
+    type: ValidationErrorResponseDto,
   })
   @UsePipes(new ZodValidationPipe(authenticateUserSchema))
   async authenticateUser(@Body() body: AuthenticateUserDto) {
