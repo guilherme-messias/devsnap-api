@@ -38,6 +38,10 @@ describe('Delete User Profile Controller (E2E)', () => {
       .delete('/users/me')
       .set('Authorization', `Bearer ${refreshToken}`);
     expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      name: 'Test User',
+      email: credentials.email,
+    });
   });
 
   test('should return 401 when the authorization header is missing', async () => {

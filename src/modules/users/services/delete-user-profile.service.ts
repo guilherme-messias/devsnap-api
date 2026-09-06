@@ -6,8 +6,22 @@ export class DeleteUserProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
   async deleteUserProfile(userId: string) {
-    return this.prisma.user.delete({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
+
+    if (!user) {
+      return null;
+    }
+
+    const deletedUser = await this.prisma.user.delete({
+      where: { id: userId },
+      select: {
+        name: true,
+        email: true,
+      },
+    });
+
+    return deletedUser;
   }
 }
