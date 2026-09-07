@@ -2,10 +2,10 @@ import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { AppModule } from '@src/app.module';
+import { AppModule } from '@app';
 import request from 'supertest';
 import { randomUUID } from 'node:crypto';
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 

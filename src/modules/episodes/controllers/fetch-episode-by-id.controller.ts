@@ -4,6 +4,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { FetchEpisodeByIdService } from '../services/fetch-episode-by-id.service';
@@ -19,12 +20,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { FetchEpisodeResponseDto } from '../schemas/response/fetch-episode.response.schema';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('episodes')
@@ -69,8 +70,10 @@ export class FetchEpisodeByIdController {
   })
   async fetchEpisodeById(
     @Param('id', paramValidationPipe) id: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const episode = await this.fetchEpisodeByIdService.fetchEpisodeById(
       id,
       userId,

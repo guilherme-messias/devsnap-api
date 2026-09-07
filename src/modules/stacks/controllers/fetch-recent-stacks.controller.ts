@@ -6,7 +6,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
@@ -16,7 +23,7 @@ import {
   pageQueryParamsSchema,
   type PageQueryParams,
 } from '@shared/http/schemas/request/page-query.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 
@@ -62,8 +69,10 @@ export class FetchRecentStacksController {
   })
   async fetchRecentStacks(
     @Query('page', queryValidationPipe) page: PageQueryParams,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const perPage = 1;
 
     const stacks = await this.fetchRecentStacksService.fetchRecentStacks(

@@ -4,6 +4,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,14 +17,14 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteAnnotationByIdService } from '../services/delete-annotation-by-id.service';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -74,8 +75,10 @@ export class DeleteAnnotationByIdController {
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const deletedAnnotation =
       await this.deleteAnnotationByIdService.deleteAnnotationById(
         id,

@@ -4,6 +4,7 @@ import {
   HttpCode,
   NotFoundException,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,7 +24,7 @@ import { CreateEpisodeResponseDto } from '../schemas/response/create-episode.res
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { StackNotFoundErrorResponseDto } from '@shared/http/schemas/response/stack-not-found-error.response.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 @ApiTags('episodes')
 @Controller('/episodes')
@@ -59,8 +60,10 @@ export class CreateEpisodeController {
   })
   async createEpisode(
     @Body(new ZodValidationPipe(createEpisodeSchema)) body: CreateEpisodeDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const { title, stackId, error, solution } = body;
 
     const episode = await this.createEpisodeService.createEpisode(

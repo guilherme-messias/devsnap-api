@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,11 +17,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { FocusSessionNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-not-found-error.response.schema';
-import { FocusSessionItemNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-item-not-found-error.response.schema';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { FocusSessionNotFoundErrorResponseDto } from '@http/schemas/response/focus-session-not-found-error.response.schema';
+import { FocusSessionItemNotFoundErrorResponseDto } from '@http/schemas/response/focus-session-item-not-found-error.response.schema';
 import { ReviewFocusSessionItemService } from '../services/review-focus-session-item.service';
 import {
   ReviewFocusSessionItemDto,
@@ -30,8 +31,8 @@ import { ReviewFocusSessionItemResponseDto } from '../schemas/response/review-fo
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
@@ -89,8 +90,10 @@ export class ReviewFocusSessionItemController {
     episodeId: UuidParam,
     @Body(new ZodValidationPipe(reviewFocusSessionItemSchema))
     body: ReviewFocusSessionItemDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const result =
       await this.reviewFocusSessionItemService.reviewFocusSessionItem(
         sessionId,

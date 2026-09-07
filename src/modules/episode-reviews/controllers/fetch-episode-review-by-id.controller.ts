@@ -4,6 +4,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -14,17 +15,17 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { FetchEpisodeReviewByIdService } from '../services/fetch-episode-review-by-id.service';
 import { FetchEpisodeReviewResponseDto } from '../schemas/response/fetch-episode-review.response.schema';
-import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-review-or-episode-not-found-error.response.schema';
+import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-review-or-episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('episode-reviews')
 @Controller('/episodes')
@@ -74,8 +75,10 @@ export class FetchEpisodeReviewByIdController {
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const episodeReview =
       await this.fetchEpisodeReviewByIdService.fetchEpisodeReviewById(
         id,

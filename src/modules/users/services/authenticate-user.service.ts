@@ -1,8 +1,8 @@
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { AuthenticateUserDto } from '../schemas/request/authenticate-user.request.schema';
 import { Injectable } from '@nestjs/common';
 import argon2 from 'argon2';
-import { AuthService } from '@src/infrastructure/auth/auth.service';
+import { AuthService } from '@infrastructure/auth/auth.service';
 @Injectable()
 export class AuthenticateUserService {
   constructor(

@@ -13,10 +13,11 @@ import {
   Param,
   Body,
   NotFoundException,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
+import { StackNotFoundErrorResponseDto } from '@http/schemas/response/stack-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { UpdateStackService } from '../services/update-stack.service';
@@ -28,8 +29,8 @@ import { UpdateStackResponseDto } from '../schemas/response/update-stack.respons
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 @ApiTags('stacks')
 @Controller('/stacks')
@@ -73,8 +74,10 @@ export class UpdateStackController {
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateStackSchema))
     body: UpdateStackDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const updatedStack = await this.updateStackService.updateStack(
       id,
       body,

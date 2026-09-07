@@ -16,10 +16,10 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { RefreshUserResponseDto } from '../schemas/response/refresh-user.response.schema';
-import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { RefreshTokenInvalidErrorResponseDto } from '@http/schemas/response/refresh-token-invalid.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
-import { type RequestWithRefreshToken } from './types/request-with-user';
+import { type RequestWithRefreshToken } from '@http/types/request-with-user';
 
 @ApiTags('users')
 @Controller('/auth')

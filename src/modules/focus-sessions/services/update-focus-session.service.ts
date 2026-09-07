@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { UpdateFocusSessionDto } from '../schemas/request/update-focus-session.request.schema';
 import {
   focusSessionWithItemsInclude,

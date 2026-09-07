@@ -1,4 +1,4 @@
-import { type RequestWithRefreshToken } from './types/request-with-user';
+import { type RequestWithRefreshToken } from '@http/types/request-with-user';
 import { Controller, Post, UseGuards, Req, HttpCode } from '@nestjs/common';
 import {
   ApiTags,
@@ -8,7 +8,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { LogoutUserService } from '../services/logout-user.service';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
 
 @ApiTags('users')
 @Controller('/auth')

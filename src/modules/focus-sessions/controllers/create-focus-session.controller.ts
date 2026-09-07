@@ -5,6 +5,7 @@ import {
   HttpCode,
   NotFoundException,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -14,17 +15,17 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { StackNotFoundErrorResponseDto } from '@http/schemas/response/stack-not-found-error.response.schema';
 import { CreateFocusSessionService } from '../services/create-focus-session.service';
 import {
   CreateFocusSessionDto,
   createFocusSessionSchema,
 } from '../schemas/request/create-focus-session.request.schema';
 import { CreateFocusSessionResponseDto } from '../schemas/response/create-focus-session.response.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
@@ -61,8 +62,10 @@ export class CreateFocusSessionController {
   async createFocusSession(
     @Body(new ZodValidationPipe(createFocusSessionSchema))
     body: CreateFocusSessionDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const result = await this.createFocusSessionService.createFocusSession(
       body.stackId,
       userId,

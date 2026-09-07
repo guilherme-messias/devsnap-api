@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -15,7 +22,7 @@ import {
   CreateStackDto,
 } from '../schemas/request/create-stack.request.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 @ApiTags('stacks')
 @Controller('/stacks')
@@ -44,8 +51,9 @@ export class CreateStackController {
   })
   async createStack(
     @Body(new ZodValidationPipe(createStackSchema)) body: CreateStackDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
     const { name } = body;
     return this.createStackService.createStack({ name }, userId);
   }

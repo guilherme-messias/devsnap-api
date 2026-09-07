@@ -10,7 +10,7 @@ import { FetchRecentAnnotationsController } from './controllers/fetch-recent-ann
 import { FetchRecentAnnotationsService } from './services/fetch-recent-annotations.service';
 import { UpdateAnnotationController } from './controllers/update-annotation.controller';
 import { UpdateAnnotationService } from './services/update-annotation.service';
-import { AuthModule } from '@src/infrastructure/auth/auth.module';
+import { AuthModule } from '@infrastructure/auth/auth.module';
 
 @Module({
   controllers: [

@@ -4,6 +4,7 @@ import {
   HttpCode,
   Query,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,21 +16,21 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
+import { EpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-not-found-error.response.schema';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { FetchRecentAnnotationsService } from '../services/fetch-recent-annotations.service';
 import { FetchRecentAnnotationsResponseDto } from '../schemas/response/fetch-recent-annotations.response.schema';
 import {
   pageQueryParamsSchema,
   type PageQueryParams,
-} from '@src/shared/http/schemas/request/page-query.schema';
+} from '@http/schemas/request/page-query.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 @ApiTags('annotations')
@@ -87,8 +88,10 @@ export class FetchRecentAnnotationsController {
     @Query('page', queryValidationPipe) page: PageQueryParams,
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const perPage = 1;
 
     const annotations =

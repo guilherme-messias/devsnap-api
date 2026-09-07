@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -23,12 +24,12 @@ import {
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { CreateAnnotationResponseDto } from '../schemas/response/create-annotation.response.schema';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -73,8 +74,10 @@ export class CreateAnnotationController {
     episodeId: UuidParam,
     @Body(new ZodValidationPipe(createAnnotationSchema))
     body: CreateAnnotationDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     return this.createAnnotationService.createAnnotation(
       body,
       episodeId,

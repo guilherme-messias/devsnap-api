@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -7,16 +14,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
 import { FetchFocusSessionsHistoryService } from '../services/fetch-focus-sessions-history.service';
 import { FetchFocusSessionsHistoryResponseDto } from '../schemas/response/fetch-focus-sessions-history.response.schema';
 import {
   pageQueryParamsSchema,
   type PageQueryParams,
-} from '@src/shared/http/schemas/request/page-query.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/page-query.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 
@@ -60,8 +67,10 @@ export class FetchFocusSessionsHistoryController {
   })
   async fetchFocusSessionsHistory(
     @Query('page', queryValidationPipe) page: PageQueryParams,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const perPage = 20;
 
     const focusSessions =

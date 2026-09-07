@@ -10,7 +10,7 @@ import { FetchRecentStacksController } from './controllers/fetch-recent-stacks.c
 import { FetchRecentStacksService } from './services/fetch-recent-stacks.service';
 import { UpdateStackController } from './controllers/update-stack.controller';
 import { UpdateStackService } from './services/update-stack.service';
-import { AuthModule } from '@src/infrastructure/auth/auth.module';
+import { AuthModule } from '@infrastructure/auth/auth.module';
 
 @Module({
   controllers: [

@@ -2,7 +2,7 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '@src/app.module';
+import { AppModule } from '@app';
 import { randomUUID } from 'crypto';
 import { Episode, Stack } from '@prisma/client';
 import { createTestUser } from '../helpers/create-test-user';

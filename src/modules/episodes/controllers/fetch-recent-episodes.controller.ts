@@ -1,4 +1,11 @@
-import { Controller, HttpCode, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { FetchRecentEpisodesService } from '../services/fetch-recent-episodes.service';
 import {
@@ -16,7 +23,7 @@ import {
   pageQueryParamsSchema,
   type PageQueryParams,
 } from '@shared/http/schemas/request/page-query.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 @ApiTags('episodes')
@@ -61,8 +68,10 @@ export class FetchRecentEpisodesController {
   })
   async fetchRecentEpisodes(
     @Query('page', queryValidationPipe) page: PageQueryParams,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const perPage = 1;
 
     const episodes = await this.fetchRecentEpisodesService.fetchRecentEpisodes(

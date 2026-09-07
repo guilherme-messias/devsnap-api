@@ -1,4 +1,4 @@
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
 
 export async function createTestFocusSession(
   prisma: PrismaService,

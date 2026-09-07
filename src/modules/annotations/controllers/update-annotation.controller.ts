@@ -13,15 +13,16 @@ import {
   Body,
   NotFoundException,
   Patch,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateAnnotationService } from '../services/update-annotation.service';
 
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
 import { UpdateAnnotationResponseDto } from '../schemas/response/update-annotation.response.schema';
-import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
+import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 import {
   UpdateAnnotationDto,
   updateAnnotationSchema,
@@ -29,8 +30,8 @@ import {
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -84,14 +85,17 @@ export class UpdateAnnotationController {
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateAnnotationSchema))
     body: UpdateAnnotationDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
-    const updatedAnnotation = await this.updateAnnotationService.updateAnnotation(
-      id,
-      body,
-      episodeId,
-      userId,
-    );
+    const userId = req.user.sub;
+
+    const updatedAnnotation =
+      await this.updateAnnotationService.updateAnnotation(
+        id,
+        body,
+        episodeId,
+        userId,
+      );
     if (!updatedAnnotation) {
       throw new NotFoundException(`Annotation or episode not found`);
     }

@@ -1,5 +1,5 @@
 import * as argon2 from 'argon2';
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { randomUUID } from 'node:crypto';
 
 export const TEST_USER_PASSWORD = 'Str0ng!Pass';

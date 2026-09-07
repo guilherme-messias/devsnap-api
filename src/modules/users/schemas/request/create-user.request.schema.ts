@@ -1,4 +1,4 @@
-import { strongPasswordSchema } from '@src/shared/http/schemas/request/password.schema';
+import { strongPasswordSchema } from '@http/schemas/request/password.schema';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 

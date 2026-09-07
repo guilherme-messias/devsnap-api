@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
-import { PaginationParams } from '@src/shared/http/schemas/request/page-query.schema';
+import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { PaginationParams } from '@http/schemas/request/page-query.schema';
 import {
   focusSessionWithItemsInclude,
   toFocusSessionResponse,

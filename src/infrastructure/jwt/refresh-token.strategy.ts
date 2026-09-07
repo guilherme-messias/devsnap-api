@@ -24,10 +24,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  validate(
-    req: Request,
-    payload: { sub: string; email: string; typ: string },
-  ) {
+  validate(req: Request, payload: { sub: string; email: string; typ: string }) {
     if (payload.typ !== 'refresh')
       throw new UnauthorizedException('Invalid token type');
     const authHeader = req.get('Authorization');

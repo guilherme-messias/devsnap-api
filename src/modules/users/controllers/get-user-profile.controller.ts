@@ -6,10 +6,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { GetUserProfileService } from '../services/get-user-profile.service';
-import type { RequestWithUser } from './types/request-with-user';
+import type { RequestWithUser } from '@http/types/request-with-user';
 import { UserProfileResponseDto } from '../schemas/response/get-user-profile.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { UserNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/user-not-found-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import { UserNotFoundErrorResponseDto } from '@http/schemas/response/user-not-found-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { UseGuards } from '@nestjs/common';
 

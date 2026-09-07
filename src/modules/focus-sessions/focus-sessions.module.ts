@@ -14,7 +14,7 @@ import { ReviewFocusSessionItemService } from './services/review-focus-session-i
 import { SkipFocusSessionItemService } from './services/skip-focus-session-item.service';
 import { FinishFocusSessionService } from './services/finish-focus-session.service';
 import { FetchFocusSessionsHistoryService } from './services/fetch-focus-sessions-history.service';
-import { AuthModule } from '@src/infrastructure/auth/auth.module';
+import { AuthModule } from '@infrastructure/auth/auth.module';
 
 @Module({
   controllers: [

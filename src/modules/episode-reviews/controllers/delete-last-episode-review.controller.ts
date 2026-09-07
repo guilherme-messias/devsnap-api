@@ -4,9 +4,10 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
+import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteLastEpisodeReviewService } from '../services/delete-last-episode-review.service';
 import {
   ApiBearerAuth,
@@ -16,14 +17,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-review-or-episode-not-found-error.response.schema';
-import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
+import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-review-or-episode-not-found-error.response.schema';
+import { ValidationErrorResponseDto } from '@http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('episode-reviews')
@@ -68,8 +69,10 @@ export class DeleteLastEpisodeReviewController {
   async deleteLastEpisodeReview(
     @Param('episodeId', paramValidationPipe)
     episodeId: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const deletedEpisodeReview =
       await this.deleteLastEpisodeReviewService.deleteLastEpisodeReview(
         episodeId,

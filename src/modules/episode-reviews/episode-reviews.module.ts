@@ -8,7 +8,7 @@ import { FetchRecentEpisodeReviewsController } from './controllers/fetch-recent-
 import { FetchRecentEpisodeReviewsService } from './services/fetch-recent-episode-reviews.service';
 import { DeleteLastEpisodeReviewController } from './controllers/delete-last-episode-review.controller';
 import { DeleteLastEpisodeReviewService } from './services/delete-last-episode-review.service';
-import { AuthModule } from '@src/infrastructure/auth/auth.module';
+import { AuthModule } from '@infrastructure/auth/auth.module';
 
 @Module({
   controllers: [

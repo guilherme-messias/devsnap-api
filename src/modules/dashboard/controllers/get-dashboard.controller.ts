@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -8,8 +8,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { GetDashboardService } from '../services/get-dashboard.service';
 import { GetDashboardResponseDto } from '../schemas/response/get-dashboard.response.schema';
-import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
+import { JwtUnauthorizedErrorResponseDto } from '@http/schemas/response/jwt-unauthorized-error.response.schema';
+import type { RequestWithUser } from '@http/types/request-with-user';
 
 @ApiTags('dashboard')
 @Controller('/dashboard')
@@ -31,7 +31,9 @@ export class GetDashboardController {
     description: 'Missing, invalid, or expired token',
     type: JwtUnauthorizedErrorResponseDto,
   })
-  async getDashboard(@CurrentUserId() userId: string) {
+  async getDashboard(@Req() req: RequestWithUser) {
+    const userId = req.user.sub;
+
     return this.getDashboardService.getDashboard(userId);
   }
 }

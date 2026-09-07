@@ -4,6 +4,7 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { DeleteEpisodeByIdService } from '../services/delete-episode-by-id.service';
@@ -18,12 +19,12 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('episodes')
@@ -67,8 +68,10 @@ export class DeleteEpisodeByIdController {
   })
   async deleteEpisodeById(
     @Param('id', paramValidationPipe) id: UuidParam,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const deletedEpisode =
       await this.deleteEpisodeByIdService.deleteEpisodeById(id, userId);
 

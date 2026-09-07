@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   NotFoundException,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UpdateEpisodeService } from '../services/update-episode.service';
@@ -23,14 +24,14 @@ import {
 } from '../schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { EpisodeNotFoundErrorResponseDto } from '@http/schemas/response/episode-not-found-error.response.schema';
 import { StackNotFoundErrorResponseDto } from '@shared/http/schemas/response/stack-not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from '../schemas/response/update-episode.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
-} from '@src/shared/http/schemas/request/uuid-param.schema';
-import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
+} from '@http/schemas/request/uuid-param.schema';
+import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
 @ApiTags('episodes')
 @Controller('/episodes')
@@ -79,8 +80,10 @@ export class UpdateEpisodeController {
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateEpisodeSchema))
     body: UpdateEpisodeDto,
-    @CurrentUserId() userId: string,
+    @Req() req: RequestWithUser,
   ) {
+    const userId = req.user.sub;
+
     const updatedEpisode = await this.updateEpisodeService.updateEpisode(
       id,
       body,
