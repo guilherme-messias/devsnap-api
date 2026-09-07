@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '@prisma/prisma.module';
+import { PrismaModule } from '@infrastructure/prisma/prisma.module';
 import { CreateEpisodeReviewController } from './controllers/create-episode-review.controller';
 import { CreateEpisodeReviewService } from './services/create-episode-review.service';
 import { FetchEpisodeReviewByIdController } from './controllers/fetch-episode-review-by-id.controller';

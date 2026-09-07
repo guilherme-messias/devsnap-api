@@ -19,7 +19,6 @@
       "@modules/*": ["./src/modules/*"],
       "@shared/*": ["./src/shared/*"],
       "@infrastructure/*": ["./src/infrastructure/*"],
-      "@prisma/*": ["./src/infrastructure/prisma/*"],
       "@http/*": ["./src/shared/http/*"]
     },
 

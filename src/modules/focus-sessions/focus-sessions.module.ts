@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '@prisma/prisma.module';
+import { PrismaModule } from '@infrastructure/prisma/prisma.module';
 import { CreateFocusSessionController } from './controllers/create-focus-session.controller';
 import { GetFocusSessionController } from './controllers/get-focus-session.controller';
 import { UpdateFocusSessionController } from './controllers/update-focus-session.controller';
