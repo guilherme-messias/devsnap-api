@@ -1,5 +1,11 @@
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
 import {
   Controller,
   HttpCode,
@@ -7,10 +13,13 @@ import {
   Body,
   NotFoundException,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { UpdateAnnotationService } from '../services/update-annotation.service';
 
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { UpdateAnnotationResponseDto } from '../schemas/response/update-annotation.response.schema';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 import {
@@ -21,9 +30,11 @@ import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('annotations')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class UpdateAnnotationController {
   constructor(
     private readonly updateAnnotationService: UpdateAnnotationService,
@@ -34,6 +45,7 @@ export class UpdateAnnotationController {
   @ApiOperation({
     summary: 'Update an existing annotation',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'episodeId',
     description: 'The ID of the episode',
@@ -57,6 +69,11 @@ export class UpdateAnnotationController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
     type: AnnotationOrEpisodeNotFoundErrorResponseDto,
@@ -67,9 +84,14 @@ export class UpdateAnnotationController {
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateAnnotationSchema))
     body: UpdateAnnotationDto,
+    @CurrentUserId() userId: string,
   ) {
-    const updatedAnnotation =
-      await this.updateAnnotationService.updateAnnotation(id, body, episodeId);
+    const updatedAnnotation = await this.updateAnnotationService.updateAnnotation(
+      id,
+      body,
+      episodeId,
+      userId,
+    );
     if (!updatedAnnotation) {
       throw new NotFoundException(`Annotation or episode not found`);
     }

@@ -5,10 +5,18 @@ import {
   HttpCode,
   NotFoundException,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
 import { CreateFocusSessionService } from '../services/create-focus-session.service';
 import {
@@ -16,9 +24,11 @@ import {
   createFocusSessionSchema,
 } from '../schemas/request/create-focus-session.request.schema';
 import { CreateFocusSessionResponseDto } from '../schemas/response/create-focus-session.response.schema';
+import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
+@UseGuards(AuthGuard('jwt'))
 export class CreateFocusSessionController {
   constructor(
     private readonly createFocusSessionService: CreateFocusSessionService,
@@ -27,6 +37,7 @@ export class CreateFocusSessionController {
   @Post()
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a focus session from a stack' })
+  @ApiBearerAuth()
   @ApiResponse({
     status: 201,
     description: 'The focus session has been successfully created.',
@@ -38,6 +49,11 @@ export class CreateFocusSessionController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Stack not found',
     type: StackNotFoundErrorResponseDto,
@@ -45,9 +61,11 @@ export class CreateFocusSessionController {
   async createFocusSession(
     @Body(new ZodValidationPipe(createFocusSessionSchema))
     body: CreateFocusSessionDto,
+    @CurrentUserId() userId: string,
   ) {
     const result = await this.createFocusSessionService.createFocusSession(
       body.stackId,
+      userId,
     );
 
     if (!result) {

@@ -5,9 +5,9 @@ import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 export class DeleteLastEpisodeReviewService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async deleteLastEpisodeReview(episodeId: string) {
+  async deleteLastEpisodeReview(episodeId: string, userId: string) {
     const lastEpisodeReview = await this.prisma.episodeReview.findFirst({
-      where: { episodeId },
+      where: { episodeId, episode: { stack: { userId } } },
       orderBy: { reviewAt: 'desc' },
     });
 

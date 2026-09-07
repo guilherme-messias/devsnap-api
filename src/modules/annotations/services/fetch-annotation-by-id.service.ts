@@ -5,14 +5,14 @@ import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 export class FetchAnnotationByIdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async fetchAnnotationById(id: string, episodeId: string) {
-    const annotation = await this.prisma.annotation.findUnique({
-      where: { id },
+  async fetchAnnotationById(id: string, episodeId: string, userId: string) {
+    const annotation = await this.prisma.annotation.findFirst({
+      where: {
+        id,
+        episodeId,
+        episode: { stack: { userId } },
+      },
     });
-
-    if (!annotation || annotation.episodeId !== episodeId) {
-      return null;
-    }
 
     return annotation;
   }

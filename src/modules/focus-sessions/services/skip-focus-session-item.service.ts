@@ -9,9 +9,13 @@ import {
 export class SkipFocusSessionItemService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async skipFocusSessionItem(sessionId: string, episodeId: string) {
-    const focusSession = await this.prisma.focusSession.findUnique({
-      where: { id: sessionId },
+  async skipFocusSessionItem(
+    sessionId: string,
+    episodeId: string,
+    userId: string,
+  ) {
+    const focusSession = await this.prisma.focusSession.findFirst({
+      where: { id: sessionId, stack: { userId } },
       include: {
         items: {
           orderBy: { position: 'asc' },

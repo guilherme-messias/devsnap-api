@@ -10,12 +10,13 @@ import {
 export class FetchFocusSessionsHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async fetchFocusSessionsHistory(data: PaginationParams) {
+  async fetchFocusSessionsHistory(data: PaginationParams, userId: string) {
     const { page, perPage } = data;
 
     const focusSessions = await this.prisma.focusSession.findMany({
       where: {
         status: 'finished',
+        stack: { userId },
       },
       skip: (page - 1) * perPage,
       take: perPage,

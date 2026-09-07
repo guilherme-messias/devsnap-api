@@ -5,16 +5,20 @@ import {
   NotFoundException,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiTags,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { FetchRecentEpisodeReviewsService } from '../services/fetch-recent-episode-reviews.service';
 import { FetchRecentEpisodeReviewsResponseDto } from '../schemas/response/fetch-recent-episode-reviews.response.schema';
@@ -26,10 +30,12 @@ import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 @ApiTags('episode-reviews')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class FetchRecentEpisodeReviewsController {
   constructor(
     private readonly fetchRecentEpisodeReviewsService: FetchRecentEpisodeReviewsService,
@@ -40,6 +46,7 @@ export class FetchRecentEpisodeReviewsController {
   @ApiOperation({
     summary: 'Fetch recent episode reviews',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'episodeId',
     description: 'The ID of the episode',
@@ -63,6 +70,11 @@ export class FetchRecentEpisodeReviewsController {
     type: FetchRecentEpisodeReviewsResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Episode not found',
     type: EpisodeNotFoundErrorResponseDto,
@@ -76,6 +88,7 @@ export class FetchRecentEpisodeReviewsController {
     @Query('page', queryValidationPipe) page: PageQueryParams,
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
+    @CurrentUserId() userId: string,
   ) {
     const perPage = 1;
 
@@ -86,6 +99,7 @@ export class FetchRecentEpisodeReviewsController {
           perPage,
         },
         episodeId,
+        userId,
       );
 
     if (!episodeReviews) {

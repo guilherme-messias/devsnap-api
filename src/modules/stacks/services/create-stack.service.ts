@@ -6,8 +6,8 @@ import { CreateStackDto } from '../schemas/request/create-stack.request.schema';
 export class CreateStackService {
   constructor(private prisma: PrismaService) {}
 
-  async createStack(data: CreateStackDto) {
-    const { name, userId } = data;
+  async createStack(data: CreateStackDto, userId: string) {
+    const { name } = data;
 
     const stack = await this.prisma.stack.create({
       data: {

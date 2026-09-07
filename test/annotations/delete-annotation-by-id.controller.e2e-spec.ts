@@ -4,6 +4,7 @@ import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Delete Annotation By Id (E2E)', () => {
   let app: INestApplication;
@@ -11,6 +12,8 @@ describe('Delete Annotation By Id (E2E)', () => {
   let stackId: string;
   let episodeId: string;
   let annotationId: string;
+  let accessToken: string;
+  let otherAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,7 +26,7 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -46,6 +49,31 @@ describe('Delete Annotation By Id (E2E)', () => {
       },
     });
     annotationId = annotation.id;
+
+    const authenticated = await authenticateTestUser(app, user.email, password);
+    accessToken = authenticated.accessToken;
+
+    const { user: otherUser, password: otherPassword } =
+      await createTestUser(prisma);
+    const otherStack = await prisma.stack.create({
+      data: { name: 'Deno', userId: otherUser.id },
+    });
+
+    await prisma.episode.create({
+      data: {
+        title: 'Episode 2',
+        error: 'Error 2',
+        solution: 'Solution 2',
+        stackId: otherStack.id,
+      },
+    });
+
+    const otherAuthenticated = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherPassword,
+    );
+    otherAccessToken = otherAuthenticated.accessToken;
   });
 
   afterAll(async () => {
@@ -56,9 +84,36 @@ describe('Delete Annotation By Id (E2E)', () => {
     await app.close();
   });
 
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+  });
+
+  test('should return 404 when the annotation belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      'Annotation or episode not found',
+    );
+
+    const annotation = await prisma.annotation.findUnique({
+      where: { id: annotationId },
+    });
+    expect(annotation).not.toBeNull();
+  });
+
   test('should delete the annotation by id', async () => {
     await request(app.getHttpServer())
       .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
 
     const deletedAnnotation = await prisma.annotation.findUnique({
@@ -71,6 +126,7 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${episodeId}/annotations/${nonExistingId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -84,6 +140,7 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${nonExistingId}/annotations/${annotationId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -97,6 +154,7 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${invalidId}/annotations/${annotationId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body).toHaveProperty('statusCode', 400);
@@ -107,6 +165,7 @@ describe('Delete Annotation By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${episodeId}/annotations/${invalidId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body).toHaveProperty('statusCode', 400);

@@ -6,12 +6,17 @@ import { PaginationParams } from '@shared/http/schemas/request/page-query.schema
 export class FetchRecentAnnotationsService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchRecentAnnotations(data: PaginationParams, episodeId: string) {
+  async fetchRecentAnnotations(
+    data: PaginationParams,
+    episodeId: string,
+    userId: string,
+  ) {
     const { page, perPage } = data;
 
-    const episode = await this.prisma.episode.findUnique({
+    const episode = await this.prisma.episode.findFirst({
       where: {
         id: episodeId,
+        stack: { userId },
       },
     });
 

@@ -20,9 +20,9 @@ function fisherYatesShuffle<T>(items: T[]): T[] {
 export class CreateFocusSessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createFocusSession(stackId: string) {
-    const stack = await this.prisma.stack.findUnique({
-      where: { id: stackId },
+  async createFocusSession(stackId: string, userId: string) {
+    const stack = await this.prisma.stack.findFirst({
+      where: { id: stackId, userId },
       include: {
         episodes: true,
       },

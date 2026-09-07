@@ -4,19 +4,30 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteAnnotationByIdService } from '../services/delete-annotation-by-id.service';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('annotations')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class DeleteAnnotationByIdController {
   constructor(
     private readonly deleteAnnotationByIdService: DeleteAnnotationByIdService,
@@ -27,6 +38,7 @@ export class DeleteAnnotationByIdController {
   @ApiOperation({
     summary: 'Delete an annotation by ID',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'episodeId',
     description: 'Episode ID',
@@ -49,6 +61,11 @@ export class DeleteAnnotationByIdController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Annotation or episode not found',
     type: AnnotationOrEpisodeNotFoundErrorResponseDto,
@@ -57,11 +74,13 @@ export class DeleteAnnotationByIdController {
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
+    @CurrentUserId() userId: string,
   ) {
     const deletedAnnotation =
       await this.deleteAnnotationByIdService.deleteAnnotationById(
         id,
         episodeId,
+        userId,
       );
 
     if (!deletedAnnotation) {

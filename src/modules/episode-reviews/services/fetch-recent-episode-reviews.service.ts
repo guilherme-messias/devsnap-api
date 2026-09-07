@@ -6,12 +6,17 @@ import { PaginationParams } from '@shared/http/schemas/request/page-query.schema
 export class FetchRecentEpisodeReviewsService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchRecentEpisodeReviews(data: PaginationParams, episodeId: string) {
+  async fetchRecentEpisodeReviews(
+    data: PaginationParams,
+    episodeId: string,
+    userId: string,
+  ) {
     const { page, perPage } = data;
 
-    const episode = await this.prisma.episode.findUnique({
+    const episode = await this.prisma.episode.findFirst({
       where: {
         id: episodeId,
+        stack: { userId },
       },
     });
 

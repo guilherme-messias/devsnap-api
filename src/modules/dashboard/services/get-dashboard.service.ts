@@ -7,8 +7,9 @@ const OVERDUE_DAYS = 7;
 export class GetDashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDashboard() {
+  async getDashboard(userId: string) {
     const stacks = await this.prisma.stack.findMany({
+      where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
         episodes: {

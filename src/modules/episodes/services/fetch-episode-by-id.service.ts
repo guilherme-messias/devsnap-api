@@ -5,9 +5,9 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 export class FetchEpisodeByIdService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchEpisodeById(id: string) {
-    const episode = await this.prisma.episode.findUnique({
-      where: { id },
+  async fetchEpisodeById(id: string, userId: string) {
+    const episode = await this.prisma.episode.findFirst({
+      where: { id, stack: { userId } },
       include: { stack: true, annotations: true },
     });
 

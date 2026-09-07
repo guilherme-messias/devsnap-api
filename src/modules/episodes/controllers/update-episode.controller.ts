@@ -5,24 +5,35 @@ import {
   Body,
   Param,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { UpdateEpisodeService } from '../services/update-episode.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import {
   updateEpisodeSchema,
   UpdateEpisodeDto,
 } from '../schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from '../schemas/response/update-episode.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('episodes')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class UpdateEpisodeController {
   constructor(private readonly updateEpisodeService: UpdateEpisodeService) {}
 
@@ -31,6 +42,7 @@ export class UpdateEpisodeController {
   @ApiOperation({
     summary: 'Update an existing episode',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     description: 'The ID of the episode to update',
@@ -48,6 +60,11 @@ export class UpdateEpisodeController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Episode not found',
     type: EpisodeNotFoundErrorResponseDto,
@@ -56,10 +73,12 @@ export class UpdateEpisodeController {
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateEpisodeSchema))
     body: UpdateEpisodeDto,
+    @CurrentUserId() userId: string,
   ) {
     const updatedEpisode = await this.updateEpisodeService.updateEpisode(
       id,
       body,
+      userId,
     );
 
     if (!updatedEpisode) {

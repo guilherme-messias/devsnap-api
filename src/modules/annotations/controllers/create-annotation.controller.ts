@@ -1,21 +1,38 @@
 import { CreateAnnotationService } from '../services/create-annotation.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import {
   CreateAnnotationDto,
   createAnnotationSchema,
 } from '../schemas/request/create-annotation.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { CreateAnnotationResponseDto } from '../schemas/response/create-annotation.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('annotations')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class CreateAnnotationController {
   constructor(
     private readonly createAnnotationService: CreateAnnotationService,
@@ -24,6 +41,7 @@ export class CreateAnnotationController {
   @Post(':episodeId/annotations')
   @HttpCode(201)
   @ApiOperation({ summary: 'Create a new annotation' })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'episodeId',
     description: 'Episode ID',
@@ -41,6 +59,11 @@ export class CreateAnnotationController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Episode not found',
     type: EpisodeNotFoundErrorResponseDto,
@@ -50,7 +73,12 @@ export class CreateAnnotationController {
     episodeId: UuidParam,
     @Body(new ZodValidationPipe(createAnnotationSchema))
     body: CreateAnnotationDto,
+    @CurrentUserId() userId: string,
   ) {
-    return this.createAnnotationService.createAnnotation(body, episodeId);
+    return this.createAnnotationService.createAnnotation(
+      body,
+      episodeId,
+      userId,
+    );
   }
 }

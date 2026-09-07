@@ -5,9 +5,9 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 export class DeleteStackByIdService {
   constructor(private prisma: PrismaService) {}
 
-  async deleteStackById(id: string) {
-    const stack = await this.prisma.stack.findUnique({
-      where: { id },
+  async deleteStackById(id: string, userId: string) {
+    const stack = await this.prisma.stack.findFirst({
+      where: { id, userId },
     });
 
     if (!stack) {

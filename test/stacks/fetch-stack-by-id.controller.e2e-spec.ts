@@ -4,11 +4,14 @@ import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Fetch Stack By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -21,11 +24,28 @@ describe('Fetch Stack By Id (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
     stackId = stack.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -37,6 +57,7 @@ describe('Fetch Stack By Id (E2E)', () => {
   test('should return the stack by id', async () => {
     const response = await request(app.getHttpServer())
       .get(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body).toHaveProperty('stack');
@@ -49,6 +70,7 @@ describe('Fetch Stack By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/stacks/${nonExistingId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -63,10 +85,32 @@ describe('Fetch Stack By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/stacks/${invalidId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body).toHaveProperty('statusCode', 400);
     expect(response.body).toHaveProperty('message');
     expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/stacks/${stackId}`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+  });
+
+  test('should return 404 when the stack belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      `Stack with ID ${stackId} not found`,
+    );
   });
 });

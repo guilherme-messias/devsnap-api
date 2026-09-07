@@ -4,9 +4,18 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { FetchEpisodeReviewByIdService } from '../services/fetch-episode-review-by-id.service';
 import { FetchEpisodeReviewResponseDto } from '../schemas/response/fetch-episode-review.response.schema';
@@ -15,9 +24,11 @@ import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@src/shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('episode-reviews')
 @Controller('/episodes')
+@UseGuards(AuthGuard('jwt'))
 export class FetchEpisodeReviewByIdController {
   constructor(
     private readonly fetchEpisodeReviewByIdService: FetchEpisodeReviewByIdService,
@@ -26,6 +37,7 @@ export class FetchEpisodeReviewByIdController {
   @Get(':episodeId/reviews/:id')
   @HttpCode(200)
   @ApiOperation({ summary: 'Fetch an episode review by ID' })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'episodeId',
     description: 'Episode ID',
@@ -49,6 +61,11 @@ export class FetchEpisodeReviewByIdController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Episode review or episode not found',
     type: EpisodeReviewOrEpisodeNotFoundErrorResponseDto,
@@ -57,11 +74,13 @@ export class FetchEpisodeReviewByIdController {
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
+    @CurrentUserId() userId: string,
   ) {
     const episodeReview =
       await this.fetchEpisodeReviewByIdService.fetchEpisodeReviewById(
         id,
         episodeId,
+        userId,
       );
 
     if (!episodeReview) {

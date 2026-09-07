@@ -10,9 +10,16 @@ export class UpdateAnnotationService {
     id: string,
     data: UpdateAnnotationDto,
     episodeId: string,
+    userId: string,
   ) {
+    const where = {
+      id,
+      episodeId,
+      episode: { stack: { userId } },
+    };
+
     const { count } = await this.prisma.annotation.updateMany({
-      where: { id, episodeId },
+      where,
       data,
     });
 
@@ -20,8 +27,6 @@ export class UpdateAnnotationService {
       return null;
     }
 
-    return this.prisma.annotation.findUnique({
-      where: { id },
-    });
+    return this.prisma.annotation.findFirst({ where });
   }
 }

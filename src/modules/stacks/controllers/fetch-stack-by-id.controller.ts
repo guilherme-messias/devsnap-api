@@ -1,4 +1,10 @@
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import {
   Controller,
@@ -6,19 +12,24 @@ import {
   HttpCode,
   NotFoundException,
   Param,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FetchStackResponseDto } from '../schemas/response/fetch-stack.response.schema';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { FetchStackByIdService } from '../services/fetch-stack-by-id.service';
 import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('stacks')
 @Controller('/stacks')
+@UseGuards(AuthGuard('jwt'))
 export class FetchStackByIdController {
   constructor(private readonly fetchStackByIdService: FetchStackByIdService) {}
 
@@ -27,6 +38,7 @@ export class FetchStackByIdController {
   @ApiOperation({
     summary: 'Fetch a stack by ID',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     description: 'Stack ID',
@@ -44,12 +56,20 @@ export class FetchStackByIdController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: EpisodeNotFoundErrorResponseDto,
+    type: StackNotFoundErrorResponseDto,
   })
-  async fetchStackById(@Param('id', paramValidationPipe) id: UuidParam) {
-    const stack = await this.fetchStackByIdService.fetchStackById(id);
+  async fetchStackById(
+    @Param('id', paramValidationPipe) id: UuidParam,
+    @CurrentUserId() userId: string,
+  ) {
+    const stack = await this.fetchStackByIdService.fetchStackById(id, userId);
 
     if (!stack) {
       throw new NotFoundException(`Stack with ID ${id} not found`);

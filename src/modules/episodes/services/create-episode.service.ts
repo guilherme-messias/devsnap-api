@@ -6,8 +6,16 @@ import { CreateEpisodeDto } from '../schemas/request/create-episode.request.sche
 export class CreateEpisodeService {
   constructor(private prisma: PrismaService) {}
 
-  async createEpisode(data: CreateEpisodeDto) {
+  async createEpisode(data: CreateEpisodeDto, userId: string) {
     const { title, stackId, error, solution } = data;
+
+    const stack = await this.prisma.stack.findFirst({
+      where: { id: stackId, userId },
+    });
+
+    if (!stack) {
+      return null;
+    }
 
     const episode = await this.prisma.episode.create({
       data: {

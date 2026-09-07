@@ -9,9 +9,9 @@ import {
 export class GetFocusSessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getFocusSession(sessionId: string) {
-    const focusSession = await this.prisma.focusSession.findUnique({
-      where: { id: sessionId },
+  async getFocusSession(sessionId: string, userId: string) {
+    const focusSession = await this.prisma.focusSession.findFirst({
+      where: { id: sessionId, stack: { userId } },
       include: focusSessionWithItemsInclude,
     });
 

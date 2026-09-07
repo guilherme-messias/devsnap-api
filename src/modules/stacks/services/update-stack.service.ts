@@ -6,9 +6,9 @@ import { UpdateStackDto } from '../schemas/request/update-stack.request.schema';
 export class UpdateStackService {
   constructor(private prisma: PrismaService) {}
 
-  async updateStack(id: string, data: UpdateStackDto) {
+  async updateStack(id: string, data: UpdateStackDto, userId: string) {
     const { count } = await this.prisma.stack.updateMany({
-      where: { id },
+      where: { id, userId },
       data,
     });
 
@@ -16,8 +16,8 @@ export class UpdateStackService {
       return null;
     }
 
-    return this.prisma.stack.findUnique({
-      where: { id },
+    return this.prisma.stack.findFirst({
+      where: { id, userId },
     });
   }
 }

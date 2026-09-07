@@ -9,9 +9,9 @@ import {
 export class FinishFocusSessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async finishFocusSession(sessionId: string) {
-    const existing = await this.prisma.focusSession.findUnique({
-      where: { id: sessionId },
+  async finishFocusSession(sessionId: string, userId: string) {
+    const existing = await this.prisma.focusSession.findFirst({
+      where: { id: sessionId, stack: { userId } },
     });
 
     if (!existing) {

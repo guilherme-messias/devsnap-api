@@ -5,9 +5,9 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 export class DeleteEpisodeByIdService {
   constructor(private prisma: PrismaService) {}
 
-  async deleteEpisodeById(id: string) {
-    const episode = await this.prisma.episode.findUnique({
-      where: { id },
+  async deleteEpisodeById(id: string, userId: string) {
+    const episode = await this.prisma.episode.findFirst({
+      where: { id, stack: { userId } },
     });
 
     if (!episode) {

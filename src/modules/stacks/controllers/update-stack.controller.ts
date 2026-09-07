@@ -1,4 +1,10 @@
-import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import {
   Controller,
@@ -7,9 +13,12 @@ import {
   Param,
   Body,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { AuthGuard } from '@nestjs/passport';
+import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { UpdateStackService } from '../services/update-stack.service';
 import {
   updateStackSchema,
@@ -20,9 +29,11 @@ import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 @ApiTags('stacks')
 @Controller('/stacks')
+@UseGuards(AuthGuard('jwt'))
 export class UpdateStackController {
   constructor(private readonly updateStackService: UpdateStackService) {}
 
@@ -31,6 +42,7 @@ export class UpdateStackController {
   @ApiOperation({
     summary: 'Update an existing stack',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     description: 'The ID of the stack to update',
@@ -48,16 +60,26 @@ export class UpdateStackController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: EpisodeNotFoundErrorResponseDto,
+    type: StackNotFoundErrorResponseDto,
   })
   async updateStack(
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateStackSchema))
     body: UpdateStackDto,
+    @CurrentUserId() userId: string,
   ) {
-    const updatedStack = await this.updateStackService.updateStack(id, body);
+    const updatedStack = await this.updateStackService.updateStack(
+      id,
+      body,
+      userId,
+    );
 
     if (!updatedStack) {
       throw new NotFoundException(`Stack with ID ${id} not found`);

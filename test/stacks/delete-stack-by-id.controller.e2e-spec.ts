@@ -4,12 +4,15 @@ import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Delete Stack By Id (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
   let userId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -22,8 +25,25 @@ describe('Delete Stack By Id (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     userId = user.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
 
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId },
@@ -38,7 +58,10 @@ describe('Delete Stack By Id (E2E)', () => {
   });
 
   test('should delete the stack by id', async () => {
-    await request(app.getHttpServer()).delete(`/stacks/${stackId}`).expect(204);
+    await request(app.getHttpServer())
+      .delete(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(204);
 
     const deletedStack = await prisma.stack.findUnique({
       where: { id: stackId },
@@ -61,6 +84,7 @@ describe('Delete Stack By Id (E2E)', () => {
 
     await request(app.getHttpServer())
       .delete(`/stacks/${stack.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
 
     const deletedStack = await prisma.stack.findUnique({
@@ -79,6 +103,7 @@ describe('Delete Stack By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/stacks/${nonExistingId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -93,10 +118,50 @@ describe('Delete Stack By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/stacks/${invalidId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body).toHaveProperty('statusCode', 400);
     expect(response.body).toHaveProperty('message');
     expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const stack = await prisma.stack.create({
+      data: { name: 'Vue.js', userId },
+    });
+
+    const response = await request(app.getHttpServer())
+      .delete(`/stacks/${stack.id}`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const stackOnDatabase = await prisma.stack.findUnique({
+      where: { id: stack.id },
+    });
+    expect(stackOnDatabase).not.toBeNull();
+  });
+
+  test('should return 404 when the stack belongs to another user', async () => {
+    const stack = await prisma.stack.create({
+      data: { name: 'Svelte', userId },
+    });
+
+    const response = await request(app.getHttpServer())
+      .delete(`/stacks/${stack.id}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      `Stack with ID ${stack.id} not found`,
+    );
+
+    const stackOnDatabase = await prisma.stack.findUnique({
+      where: { id: stack.id },
+    });
+    expect(stackOnDatabase).not.toBeNull();
   });
 });

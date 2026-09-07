@@ -13,9 +13,10 @@ export class ReviewFocusSessionItemService {
     sessionId: string,
     episodeId: string,
     result: string,
+    userId: string,
   ) {
-    const focusSession = await this.prisma.focusSession.findUnique({
-      where: { id: sessionId },
+    const focusSession = await this.prisma.focusSession.findFirst({
+      where: { id: sessionId, stack: { userId } },
       include: {
         items: {
           orderBy: { position: 'asc' },

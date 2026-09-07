@@ -6,12 +6,17 @@ import { CreateAnnotationDto } from '../schemas/request/create-annotation.reques
 export class CreateAnnotationService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createAnnotation(data: CreateAnnotationDto, episodeId: string) {
+  async createAnnotation(
+    data: CreateAnnotationDto,
+    episodeId: string,
+    userId: string,
+  ) {
     const { text } = data;
 
-    const episode = await this.prisma.episode.findUnique({
+    const episode = await this.prisma.episode.findFirst({
       where: {
         id: episodeId,
+        stack: { userId },
       },
     });
 

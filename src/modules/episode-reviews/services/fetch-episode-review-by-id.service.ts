@@ -5,14 +5,14 @@ import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 export class FetchEpisodeReviewByIdService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async fetchEpisodeReviewById(id: string, episodeId: string) {
-    const episodeReview = await this.prisma.episodeReview.findUnique({
-      where: { id },
+  async fetchEpisodeReviewById(id: string, episodeId: string, userId: string) {
+    const episodeReview = await this.prisma.episodeReview.findFirst({
+      where: {
+        id,
+        episodeId,
+        episode: { stack: { userId } },
+      },
     });
-
-    if (!episodeReview || episodeReview.episodeId !== episodeId) {
-      return null;
-    }
 
     return episodeReview;
   }

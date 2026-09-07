@@ -4,20 +4,31 @@ import {
   HttpCode,
   Param,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { StackNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/stack-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteStackByIdService } from '../services/delete-stack-by-id.service';
 import {
   uuidParamSchema,
   type UuidParam,
 } from '@src/shared/http/schemas/request/uuid-param.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('stacks')
 @Controller('/stacks')
+@UseGuards(AuthGuard('jwt'))
 export class DeleteStackByIdController {
   constructor(
     private readonly deleteStackByIdService: DeleteStackByIdService,
@@ -28,6 +39,7 @@ export class DeleteStackByIdController {
   @ApiOperation({
     summary: 'Delete a stack by ID',
   })
+  @ApiBearerAuth()
   @ApiParam({
     name: 'id',
     description: 'Stack ID',
@@ -44,12 +56,23 @@ export class DeleteStackByIdController {
     type: ValidationErrorResponseDto,
   })
   @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
+  @ApiResponse({
     status: 404,
     description: 'Stack not found',
-    type: EpisodeNotFoundErrorResponseDto,
+    type: StackNotFoundErrorResponseDto,
   })
-  async deleteStackById(@Param('id', paramValidationPipe) id: UuidParam) {
-    const deletedStack = await this.deleteStackByIdService.deleteStackById(id);
+  async deleteStackById(
+    @Param('id', paramValidationPipe) id: UuidParam,
+    @CurrentUserId() userId: string,
+  ) {
+    const deletedStack = await this.deleteStackByIdService.deleteStackById(
+      id,
+      userId,
+    );
 
     if (!deletedStack) {
       throw new NotFoundException(`Stack with ID ${id} not found`);

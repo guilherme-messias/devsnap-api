@@ -10,9 +10,13 @@ import {
 export class UpdateFocusSessionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async updateFocusSession(sessionId: string, data: UpdateFocusSessionDto) {
-    const existing = await this.prisma.focusSession.findUnique({
-      where: { id: sessionId },
+  async updateFocusSession(
+    sessionId: string,
+    data: UpdateFocusSessionDto,
+    userId: string,
+  ) {
+    const existing = await this.prisma.focusSession.findFirst({
+      where: { id: sessionId, stack: { userId } },
       include: {
         items: true,
       },

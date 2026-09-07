@@ -4,12 +4,15 @@ import request from 'supertest';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Update Stack (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
   let userId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -22,8 +25,25 @@ describe('Update Stack (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     userId = user.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -40,6 +60,7 @@ describe('Update Stack (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'Updated Stack Name',
       })
@@ -57,6 +78,7 @@ describe('Update Stack (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: '',
       })
@@ -76,6 +98,7 @@ describe('Update Stack (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/stacks/${nonExistentStackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: 'Updated Stack Name',
       })
@@ -96,6 +119,7 @@ describe('Update Stack (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .patch(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         name: '',
       })
@@ -103,5 +127,52 @@ describe('Update Stack (E2E)', () => {
 
     expect(response.body).toHaveProperty('statusCode', 400);
     expect(response.body).toHaveProperty('message', 'Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
+    stackId = stack.id;
+
+    const response = await request(app.getHttpServer())
+      .patch(`/stacks/${stackId}`)
+      .send({
+        name: 'Updated Stack Name',
+      })
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const stackOnDatabase = await prisma.stack.findUnique({
+      where: { id: stackId },
+    });
+    expect(stackOnDatabase).toMatchObject({ name: 'Node.js' });
+  });
+
+  test('should return 404 when the stack belongs to another user', async () => {
+    const stack = await prisma.stack.create({
+      data: { name: 'Node.js', userId },
+    });
+    stackId = stack.id;
+
+    const response = await request(app.getHttpServer())
+      .patch(`/stacks/${stackId}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .send({
+        name: 'Hacked Stack Name',
+      })
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      `Stack with ID ${stackId} not found`,
+    );
+
+    const stackOnDatabase = await prisma.stack.findUnique({
+      where: { id: stackId },
+    });
+    expect(stackOnDatabase).toMatchObject({ name: 'Node.js' });
   });
 });

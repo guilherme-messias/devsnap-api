@@ -27,6 +27,6 @@ import { PrismaModule } from '../prisma/prisma.module';
     }),
   ],
   providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
-  exports: [AuthService],
+  exports: [AuthService, PassportModule],
 })
 export class AuthModule {}

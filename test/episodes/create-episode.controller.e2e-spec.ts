@@ -4,11 +4,14 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { AppModule } from '@src/app.module';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Create Episode (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let stackId: string;
+  let accessToken: string;
+  let otherAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -21,11 +24,27 @@ describe('Create Episode (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
     stackId = stack.id;
+
+    const auth = await authenticateTestUser(app, user.email, password);
+    accessToken = auth.accessToken;
+
+    const { user: otherUser, password: otherPassword } =
+      await createTestUser(prisma);
+    await prisma.stack.create({
+      data: { name: 'Go', userId: otherUser.id },
+    });
+
+    const otherAuth = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherPassword,
+    );
+    otherAccessToken = otherAuth.accessToken;
   });
 
   afterAll(async () => {
@@ -38,6 +57,7 @@ describe('Create Episode (E2E)', () => {
   test('should create an episode when payload is valid', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'Test Episode',
         stackId,
@@ -63,6 +83,7 @@ describe('Create Episode (E2E)', () => {
   test('should return 400 when payload is invalid', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'Test Episode',
         stackId,
@@ -76,6 +97,7 @@ describe('Create Episode (E2E)', () => {
   test('should return 400 when title is empty', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: '   ',
         stackId,
@@ -85,5 +107,50 @@ describe('Create Episode (E2E)', () => {
       .expect(400);
 
     expect(response.body.message).toEqual('Validation failed');
+  });
+
+  test('should return 401 when no authorization header is provided', async () => {
+    await request(app.getHttpServer())
+      .post('/episodes')
+      .send({
+        title: 'Test Episode',
+        stackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      })
+      .expect(401);
+  });
+
+  test('should return 404 when the stack belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/episodes')
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .send({
+        title: 'Test Episode',
+        stackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      })
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty('message', 'Stack not found');
+  });
+
+  test('should return 404 when the stack does not exist', async () => {
+    const nonExistingStackId = '00000000-0000-0000-0000-000000000000';
+
+    const response = await request(app.getHttpServer())
+      .post('/episodes')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'Test Episode',
+        stackId: nonExistingStackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      })
+      .expect(404);
+
+    expect(response.body).toHaveProperty('message', 'Stack not found');
   });
 });

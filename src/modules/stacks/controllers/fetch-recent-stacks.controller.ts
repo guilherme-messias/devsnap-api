@@ -1,18 +1,28 @@
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import { Controller, Get, HttpCode, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
+import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { FetchRecentStacksService } from '../services/fetch-recent-stacks.service';
 import { FetchRecentStacksResponseDto } from '../schemas/response/fetch-recent-stacks.response.schema';
 import {
   pageQueryParamsSchema,
   type PageQueryParams,
 } from '@shared/http/schemas/request/page-query.schema';
+import { CurrentUserId } from '@shared/http/decorators/current-user-id.decorator';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
 
 @ApiTags('stacks')
 @Controller('/stacks')
+@UseGuards(AuthGuard('jwt'))
 export class FetchRecentStacksController {
   constructor(
     private readonly fetchRecentStacksService: FetchRecentStacksService,
@@ -23,6 +33,7 @@ export class FetchRecentStacksController {
   @ApiOperation({
     summary: 'Fetch recent stacks',
   })
+  @ApiBearerAuth()
   @ApiQuery({
     name: 'page',
     description: 'Page number for pagination (default: 1)',
@@ -44,15 +55,24 @@ export class FetchRecentStacksController {
     description: 'Invalid page parameter',
     type: ValidationErrorResponseDto,
   })
+  @ApiResponse({
+    status: 401,
+    description: 'Missing, invalid, or expired token',
+    type: JwtUnauthorizedErrorResponseDto,
+  })
   async fetchRecentStacks(
     @Query('page', queryValidationPipe) page: PageQueryParams,
+    @CurrentUserId() userId: string,
   ) {
     const perPage = 1;
 
-    const stacks = await this.fetchRecentStacksService.fetchRecentStacks({
-      page,
-      perPage,
-    });
+    const stacks = await this.fetchRecentStacksService.fetchRecentStacks(
+      {
+        page,
+        perPage,
+      },
+      userId,
+    );
 
     return { stacks };
   }
