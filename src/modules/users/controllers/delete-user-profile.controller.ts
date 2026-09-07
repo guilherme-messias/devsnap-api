@@ -16,7 +16,7 @@ import { UserNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/
 
 @ApiTags('users')
 @Controller('/users')
-@UseGuards(AuthGuard('jwt-refresh'))
+@UseGuards(AuthGuard('jwt'))
 export class DeleteUserProfileController {
   constructor(
     private readonly deleteUserProfileService: DeleteUserProfileService,

@@ -1,4 +1,4 @@
-import { type RequestWithUser } from './types/request-with-user';
+import { type RequestWithRefreshToken } from './types/request-with-user';
 import { Controller, Post, UseGuards, Req, HttpCode } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,7 +31,7 @@ export class LogoutUserController {
     description: 'Missing, invalid, or expired token',
     type: JwtUnauthorizedErrorResponseDto,
   })
-  async logoutUser(@Req() req: RequestWithUser) {
+  async logoutUser(@Req() req: RequestWithRefreshToken) {
     const userId = req.user.sub;
     await this.logoutUserService.logoutUser(userId);
   }

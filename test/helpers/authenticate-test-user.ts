@@ -10,5 +10,8 @@ export async function authenticateTestUser(
     .post('/auth/login')
     .send({ email, password });
 
-  return { refreshToken: response.body.refreshToken };
+  return {
+    accessToken: response.body.accessToken,
+    refreshToken: response.body.refreshToken,
+  };
 }

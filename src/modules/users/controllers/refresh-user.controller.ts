@@ -19,7 +19,7 @@ import { RefreshUserResponseDto } from '../schemas/response/refresh-user.respons
 import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';
-import { type RequestWithUser } from './types/request-with-user';
+import { type RequestWithRefreshToken } from './types/request-with-user';
 
 @ApiTags('users')
 @Controller('/auth')
@@ -52,7 +52,7 @@ export class RefreshUserController {
       ],
     },
   })
-  async refreshUser(@Req() req: RequestWithUser) {
+  async refreshUser(@Req() req: RequestWithRefreshToken) {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
 

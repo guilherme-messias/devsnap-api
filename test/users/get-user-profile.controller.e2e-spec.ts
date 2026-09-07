@@ -39,7 +39,7 @@ describe('Get User Profile Controller (E2E)', () => {
   });
 
   test('should return the user profile', async () => {
-    const { refreshToken } = await authenticateTestUser(
+    const { accessToken } = await authenticateTestUser(
       app,
       credentials.email,
       credentials.password,
@@ -47,7 +47,7 @@ describe('Get User Profile Controller (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get('/users/me')
-      .set('Authorization', `Bearer ${refreshToken}`);
+      .set('Authorization', `Bearer ${accessToken}`);
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('id');
     expect(response.body).toHaveProperty('email');
@@ -57,21 +57,21 @@ describe('Get User Profile Controller (E2E)', () => {
   });
 
   test('should return 404 when the user is not found', async () => {
-    const refreshToken = await jwt.signAsync(
-      { sub: randomUUID(), email: 'missing@test.com' },
+    const accessToken = await jwt.signAsync(
+      { sub: randomUUID(), email: 'missing@test.com', typ: 'access' },
       {
         privateKey: Buffer.from(
           configService.getOrThrow<string>('JWT_PRIVATE_KEY'),
           'base64',
         ).toString('utf-8'),
         algorithm: 'RS256',
-        expiresIn: '7d',
+        expiresIn: '15m',
       },
     );
 
     const response = await request(app.getHttpServer())
       .get('/users/me')
-      .set('Authorization', `Bearer ${refreshToken}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toEqual({

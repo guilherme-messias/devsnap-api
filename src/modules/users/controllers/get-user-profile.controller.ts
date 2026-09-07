@@ -15,7 +15,7 @@ import { UseGuards } from '@nestjs/common';
 
 @ApiTags('users')
 @Controller('/users')
-@UseGuards(AuthGuard('jwt-refresh'))
+@UseGuards(AuthGuard('jwt'))
 export class GetUserProfileController {
   constructor(private readonly getUserProfileService: GetUserProfileService) {}
 

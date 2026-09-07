@@ -65,7 +65,7 @@ describe('Refresh User (E2E)', () => {
 
   test('should return 401 when refresh token is expired', async () => {
     const expiredRefreshToken = await jwt.signAsync(
-      { sub: userId, email: credentials.email },
+      { sub: userId, email: credentials.email, typ: 'refresh' },
       {
         privateKey: Buffer.from(
           configService.getOrThrow<string>('JWT_PRIVATE_KEY'),
