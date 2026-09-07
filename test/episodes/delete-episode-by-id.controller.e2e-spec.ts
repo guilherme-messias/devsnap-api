@@ -11,7 +11,7 @@ describe('Delete Episode By Id (E2E)', () => {
   let prisma: PrismaService;
   let stackId: string;
   let accessToken: string;
-  let otherAccessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -30,21 +30,26 @@ describe('Delete Episode By Id (E2E)', () => {
     });
     stackId = stack.id;
 
-    const auth = await authenticateTestUser(app, user.email, password);
-    accessToken = auth.accessToken;
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
 
-    const { user: otherUser, password: otherPassword } =
+    const { user: otherUser, password: otherUserPassword } =
       await createTestUser(prisma);
+
     await prisma.stack.create({
-      data: { name: 'Go', userId: otherUser.id },
+      data: { name: 'Rust', userId: otherUser.id },
     });
 
-    const otherAuth = await authenticateTestUser(
+    const otherAuthentication = await authenticateTestUser(
       app,
       otherUser.email,
-      otherPassword,
+      otherUserPassword,
     );
-    otherAccessToken = otherAuth.accessToken;
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -103,7 +108,7 @@ describe('Delete Episode By Id (E2E)', () => {
     expect(response.body.message).toContain('Validation failed');
   });
 
-  test('should return 401 when no authorization header is provided', async () => {
+  test('should return 401 when the authorization header is missing', async () => {
     const episode = await prisma.episode.create({
       data: {
         title: 'Unauthenticated Episode',
@@ -113,9 +118,11 @@ describe('Delete Episode By Id (E2E)', () => {
       },
     });
 
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .delete(`/episodes/${episode.id}`)
       .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
 
     const episodeOnDatabase = await prisma.episode.findUnique({
       where: { id: episode.id },
@@ -135,7 +142,7 @@ describe('Delete Episode By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${episode.id}`)
-      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);

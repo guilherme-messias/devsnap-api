@@ -5,6 +5,7 @@ import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Finish Focus Session (E2E)', () => {
   let app: INestApplication;
@@ -12,6 +13,8 @@ describe('Finish Focus Session (E2E)', () => {
   let stackId: string;
   let episodeId: string;
   let sessionId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,7 +26,25 @@ describe('Finish Focus Session (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
+
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -75,6 +96,7 @@ describe('Finish Focus Session (E2E)', () => {
   test('should finish a focus session', async () => {
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${sessionId}/finish`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body).toEqual({
@@ -96,6 +118,7 @@ describe('Finish Focus Session (E2E)', () => {
   test('should return 404 when focus session does not exist', async () => {
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${randomUUID()}/finish`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body.message).toEqual('Focus session not found');
@@ -104,8 +127,42 @@ describe('Finish Focus Session (E2E)', () => {
   test('should return 400 when sessionId is not a uuid', async () => {
     const response = await request(app.getHttpServer())
       .post('/focus-sessions/invalid-uuid/finish')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/focus-sessions/${sessionId}/finish`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: sessionId },
+    });
+    expect(sessionOnDatabase).toMatchObject({
+      status: 'in_progress',
+      finishedAt: null,
+    });
+  });
+
+  test('should return 404 when the focus session belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/focus-sessions/${sessionId}/finish`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body.message).toEqual('Focus session not found');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: sessionId },
+    });
+    expect(sessionOnDatabase).toMatchObject({
+      status: 'in_progress',
+      finishedAt: null,
+    });
   });
 });

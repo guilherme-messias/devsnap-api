@@ -4,12 +4,16 @@ import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { AppModule } from '@src/app.module';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Update Episode (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let sourceStackId: string;
   let targetStackId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
+  let otherUserStackId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -22,7 +26,7 @@ describe('Update Episode (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
 
     const [sourceStack, targetStack] = await Promise.all([
       prisma.stack.create({ data: { name: 'Node.js', userId: user.id } }),
@@ -30,6 +34,28 @@ describe('Update Episode (E2E)', () => {
     ]);
     sourceStackId = sourceStack.id;
     targetStackId = targetStack.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherStack = await prisma.stack.create({
+      data: { name: 'Rust', userId: otherUser.id },
+    });
+    otherUserStackId = otherStack.id;
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -52,6 +78,7 @@ describe('Update Episode (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .put(`/episodes/${episode.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'Updated Episode',
         stackId: targetStackId,
@@ -100,6 +127,7 @@ describe('Update Episode (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .put(`/episodes/${episode.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 123,
       })
@@ -113,6 +141,7 @@ describe('Update Episode (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .put(`/episodes/${nonExistingId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: 'Updated Episode',
         stackId: targetStackId,
@@ -140,9 +169,102 @@ describe('Update Episode (E2E)', () => {
 
     await request(app.getHttpServer())
       .put(`/episodes/${episode.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({
         title: '   ',
       })
       .expect(400);
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const episode = await prisma.episode.create({
+      data: {
+        title: 'Test Episode',
+        stackId: sourceStackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .put(`/episodes/${episode.id}`)
+      .send({
+        title: 'Updated Episode',
+        stackId: targetStackId,
+        error: 'Updated error',
+        solution: 'Updated solution',
+      })
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const episodeOnDatabase = await prisma.episode.findUnique({
+      where: { id: episode.id },
+    });
+    expect(episodeOnDatabase?.title).toEqual('Test Episode');
+  });
+
+  test('should return 404 when the episode belongs to another user', async () => {
+    const episode = await prisma.episode.create({
+      data: {
+        title: 'Owner Episode',
+        stackId: sourceStackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .put(`/episodes/${episode.id}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .send({
+        title: 'Hacked Episode',
+        stackId: otherUserStackId,
+        error: 'Updated error',
+        solution: 'Updated solution',
+      })
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty(
+      'message',
+      `Episode with ID ${episode.id} not found`,
+    );
+
+    const episodeOnDatabase = await prisma.episode.findUnique({
+      where: { id: episode.id },
+    });
+    expect(episodeOnDatabase?.title).toEqual('Owner Episode');
+    expect(episodeOnDatabase?.stackId).toEqual(sourceStackId);
+  });
+
+  test('should return 404 when the target stack belongs to another user', async () => {
+    const episode = await prisma.episode.create({
+      data: {
+        title: 'Owner Episode',
+        stackId: sourceStackId,
+        error: 'Some error',
+        solution: 'Some solution',
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .put(`/episodes/${episode.id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        title: 'Updated Episode',
+        stackId: otherUserStackId,
+        error: 'Updated error',
+        solution: 'Updated solution',
+      })
+      .expect(404);
+
+    expect(response.body).toHaveProperty('statusCode', 404);
+    expect(response.body).toHaveProperty('message', 'Stack not found');
+
+    const episodeOnDatabase = await prisma.episode.findUnique({
+      where: { id: episode.id },
+    });
+    expect(episodeOnDatabase?.stackId).toEqual(sourceStackId);
   });
 });

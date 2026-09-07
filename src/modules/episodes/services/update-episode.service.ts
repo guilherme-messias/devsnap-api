@@ -13,7 +13,7 @@ export class UpdateEpisodeService {
       });
 
       if (!targetStack) {
-        return null;
+        return { stackNotFound: true as const };
       }
     }
 

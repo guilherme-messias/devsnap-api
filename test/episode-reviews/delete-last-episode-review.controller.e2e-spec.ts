@@ -5,6 +5,7 @@ import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
 
 describe('Delete Last Episode Review Controller (E2E)', () => {
@@ -14,6 +15,8 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   let episodeId: string;
   let episodeReviewId: string;
   let userId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -26,8 +29,25 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
     userId = user.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   beforeEach(async () => {
@@ -73,6 +93,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   test('should return 204 if the last episode review is deleted', async () => {
     await request(app.getHttpServer())
       .delete(`/episodes/${episodeId}/reviews/latest`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
 
     const deletedEpisodeReview = await prisma.episodeReview.findUnique({
@@ -87,6 +108,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${episodeId}/reviews/latest`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body.message).toBe('Episode review or episode not found');
@@ -97,6 +119,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body.message).toBe('Episode review or episode not found');
@@ -105,8 +128,36 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   test('should return 400 if the episode id is invalid', async () => {
     const response = await request(app.getHttpServer())
       .delete(`/episodes/invalid-id/reviews/latest`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body.message).toBe('Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .delete(`/episodes/${episodeId}/reviews/latest`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const episodeReviewOnDatabase = await prisma.episodeReview.findUnique({
+      where: { id: episodeReviewId },
+    });
+    expect(episodeReviewOnDatabase).toBeTruthy();
+  });
+
+  test('should return 404 when the episode belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .delete(`/episodes/${episodeId}/reviews/latest`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body.message).toBe('Episode review or episode not found');
+
+    const episodeReviewOnDatabase = await prisma.episodeReview.findUnique({
+      where: { id: episodeReviewId },
+    });
+    expect(episodeReviewOnDatabase).toBeTruthy();
   });
 });

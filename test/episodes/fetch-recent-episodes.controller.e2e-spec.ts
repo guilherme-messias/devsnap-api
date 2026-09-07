@@ -11,7 +11,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
   let prisma: PrismaService;
   let stackId: string;
   let accessToken: string;
-  let otherAccessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -30,8 +30,12 @@ describe('Fetch Recent Episodes (E2E)', () => {
     });
     stackId = stack.id;
 
-    const auth = await authenticateTestUser(app, user.email, password);
-    accessToken = auth.accessToken;
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
 
     await prisma.episode.create({
       data: {
@@ -51,10 +55,11 @@ describe('Fetch Recent Episodes (E2E)', () => {
       },
     });
 
-    const { user: otherUser, password: otherPassword } =
+    const { user: otherUser, password: otherUserPassword } =
       await createTestUser(prisma);
+
     const otherStack = await prisma.stack.create({
-      data: { name: 'Go', userId: otherUser.id },
+      data: { name: 'Rust', userId: otherUser.id },
     });
 
     await prisma.episode.create({
@@ -66,12 +71,12 @@ describe('Fetch Recent Episodes (E2E)', () => {
       },
     });
 
-    const otherAuth = await authenticateTestUser(
+    const otherAuthentication = await authenticateTestUser(
       app,
       otherUser.email,
-      otherPassword,
+      otherUserPassword,
     );
-    otherAccessToken = otherAuth.accessToken;
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -133,33 +138,40 @@ describe('Fetch Recent Episodes (E2E)', () => {
     expect(response.body.episodes[0]).toHaveProperty('solution');
   });
 
-  test('should return 401 when no authorization header is provided', async () => {
-    await request(app.getHttpServer()).get('/episodes?page=1').expect(401);
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/episodes?page=1')
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
   });
 
-  test('should not list episodes that belong to another user', async () => {
-    const ownerResponse = await request(app.getHttpServer())
+  test('should not return episodes that belong to another user', async () => {
+    const ownerThirdPage = await request(app.getHttpServer())
       .get('/episodes?page=3')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(ownerResponse.body.episodes).toEqual([]);
+    expect(ownerThirdPage.body.episodes).toBeInstanceOf(Array);
+    expect(ownerThirdPage.body.episodes.length).toBe(0);
 
-    const otherResponse = await request(app.getHttpServer())
+    const firstPage = await request(app.getHttpServer())
       .get('/episodes?page=1')
-      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
-    expect(otherResponse.body.episodes.length).toBe(1);
-    expect(otherResponse.body.episodes[0].title).toBe('Other User Episode');
-    expect(otherResponse.body.episodes[0].stackId).not.toBe(stackId);
+    expect(firstPage.body.episodes).toBeInstanceOf(Array);
+    expect(firstPage.body.episodes.length).toBe(1);
+    expect(firstPage.body.episodes[0].title).toBe('Other User Episode');
+    expect(firstPage.body.episodes[0].stackId).not.toBe(stackId);
 
-    const otherSecondPageResponse = await request(app.getHttpServer())
+    const secondPage = await request(app.getHttpServer())
       .get('/episodes?page=2')
-      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
-    expect(otherSecondPageResponse.body.episodes).toEqual([]);
+    expect(secondPage.body.episodes).toBeInstanceOf(Array);
+    expect(secondPage.body.episodes.length).toBe(0);
   });
 
   test('should return 200 and an empty array when there are no episodes', async () => {

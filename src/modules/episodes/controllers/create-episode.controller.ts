@@ -5,7 +5,6 @@ import {
   NotFoundException,
   Post,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import {
   CreateEpisodeDto,
@@ -58,9 +57,8 @@ export class CreateEpisodeController {
     description: 'Stack not found',
     type: StackNotFoundErrorResponseDto,
   })
-  @UsePipes(new ZodValidationPipe(createEpisodeSchema))
   async createEpisode(
-    @Body() body: CreateEpisodeDto,
+    @Body(new ZodValidationPipe(createEpisodeSchema)) body: CreateEpisodeDto,
     @CurrentUserId() userId: string,
   ) {
     const { title, stackId, error, solution } = body;

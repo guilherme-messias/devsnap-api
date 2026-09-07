@@ -5,6 +5,7 @@ import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Skip Focus Session Item (E2E)', () => {
   let app: INestApplication;
@@ -12,6 +13,8 @@ describe('Skip Focus Session Item (E2E)', () => {
   let stackId: string;
   let episodeIds: string[];
   let sessionId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,7 +26,25 @@ describe('Skip Focus Session Item (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
+
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -83,6 +104,7 @@ describe('Skip Focus Session Item (E2E)', () => {
   test('should skip an item and advance currentIndex', async () => {
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/skip`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body).toEqual({
@@ -109,6 +131,7 @@ describe('Skip Focus Session Item (E2E)', () => {
   test('should return 404 when focus session does not exist', async () => {
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${randomUUID()}/items/${episodeIds[0]}/skip`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body.message).toEqual('Focus session not found');
@@ -117,6 +140,7 @@ describe('Skip Focus Session Item (E2E)', () => {
   test('should return 404 when item does not belong to the session', async () => {
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${sessionId}/items/${randomUUID()}/skip`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body.message).toEqual('Focus session item not found');
@@ -130,8 +154,40 @@ describe('Skip Focus Session Item (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/skip`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body.message).toEqual('Focus session is not in progress');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/skip`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: sessionId },
+      include: { items: { orderBy: { position: 'asc' } } },
+    });
+    expect(sessionOnDatabase).toMatchObject({ currentIndex: 0 });
+    expect(sessionOnDatabase?.items[0]).toMatchObject({ status: 'pending' });
+  });
+
+  test('should return 404 when the focus session belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/skip`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body.message).toEqual('Focus session not found');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: sessionId },
+      include: { items: { orderBy: { position: 'asc' } } },
+    });
+    expect(sessionOnDatabase).toMatchObject({ currentIndex: 0 });
+    expect(sessionOnDatabase?.items[0]).toMatchObject({ status: 'pending' });
   });
 });

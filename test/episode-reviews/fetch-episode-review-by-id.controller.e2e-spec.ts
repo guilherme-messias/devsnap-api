@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '@src/app.module';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
 
 describe('Fetch Episode Review By Id Controller (E2E)', () => {
@@ -13,6 +14,8 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
   let episodeId: string;
   let episodeReviewId: string;
   let focusSessionId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -25,7 +28,25 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
+
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -60,9 +81,10 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
   });
 
   test('should be able to fetch an episode review by id', async () => {
-    const response = await request(app.getHttpServer()).get(
-      `/episodes/${episodeId}/reviews/${episodeReviewId}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       episodeReview: {
@@ -77,9 +99,10 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
   test('should return 404 for non-existing episode review id', async () => {
     const nonExistingEpisodeReviewId = '00000000-0000-0000-0000-000000000000';
-    const response = await request(app.getHttpServer()).get(
-      `/episodes/${episodeId}/reviews/${nonExistingEpisodeReviewId}`,
-    );
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${episodeId}/reviews/${nonExistingEpisodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`);
+
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       statusCode: 404,
@@ -100,6 +123,7 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/episodes/${anotherEpisode.id}/reviews/${episodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -113,7 +137,9 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
     const nonExistingEpisodeId = '00000000-0000-0000-0000-000000000000';
     const response = await request(app.getHttpServer())
       .get(`/episodes/${nonExistingEpisodeId}/reviews/${episodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
+
     expect(response.body).toHaveProperty('statusCode', 404);
     expect(response.body).toHaveProperty(
       'message',
@@ -125,7 +151,9 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
     const invalidEpisodeReviewId = 'invalid-uuid';
     const response = await request(app.getHttpServer())
       .get(`/episodes/${episodeId}/reviews/${invalidEpisodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
+
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty('statusCode', 400);
     expect(response.body).toHaveProperty('message', 'Validation failed');
@@ -135,8 +163,30 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
     const invalidEpisodeId = 'invalid-uuid';
     const response = await request(app.getHttpServer())
       .get(`/episodes/${invalidEpisodeId}/reviews/${episodeReviewId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
+
     expect(response.body).toHaveProperty('statusCode', 400);
     expect(response.body).toHaveProperty('message', 'Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+  });
+
+  test('should return 404 when the episode review belongs to another user', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(404);
+
+    expect(response.body).toHaveProperty(
+      'message',
+      'Episode review or episode not found',
+    );
   });
 });

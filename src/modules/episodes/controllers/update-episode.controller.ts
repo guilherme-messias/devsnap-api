@@ -24,6 +24,7 @@ import {
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import { StackNotFoundErrorResponseDto } from '@shared/http/schemas/response/stack-not-found-error.response.schema';
 import { UpdateEpisodeResponseDto } from '../schemas/response/update-episode.response.schema';
 import {
   uuidParamSchema,
@@ -69,6 +70,11 @@ export class UpdateEpisodeController {
     description: 'Episode not found',
     type: EpisodeNotFoundErrorResponseDto,
   })
+  @ApiResponse({
+    status: 404,
+    description: 'Stack not found',
+    type: StackNotFoundErrorResponseDto,
+  })
   async updateEpisode(
     @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateEpisodeSchema))
@@ -83,6 +89,10 @@ export class UpdateEpisodeController {
 
     if (!updatedEpisode) {
       throw new NotFoundException(`Episode with ID ${id} not found`);
+    }
+
+    if ('stackNotFound' in updatedEpisode) {
+      throw new NotFoundException('Stack not found');
     }
 
     return { episode: updatedEpisode };

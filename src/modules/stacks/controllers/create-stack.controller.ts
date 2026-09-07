@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Post,
-  UseGuards,
-  UsePipes,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -49,9 +42,8 @@ export class CreateStackController {
     description: 'Missing, invalid, or expired token',
     type: JwtUnauthorizedErrorResponseDto,
   })
-  @UsePipes(new ZodValidationPipe(createStackSchema))
   async createStack(
-    @Body() body: CreateStackDto,
+    @Body(new ZodValidationPipe(createStackSchema)) body: CreateStackDto,
     @CurrentUserId() userId: string,
   ) {
     const { name } = body;

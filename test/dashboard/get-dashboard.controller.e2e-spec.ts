@@ -4,10 +4,13 @@ import { AppModule } from '@src/app.module';
 import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Get Dashboard (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let userId: string;
+  let accessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -33,11 +36,22 @@ describe('Get Dashboard (E2E)', () => {
     await prisma.episode.deleteMany();
     await prisma.stack.deleteMany();
     await prisma.user.deleteMany();
+
+    const { user, password } = await createTestUser(prisma);
+    userId = user.id;
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
   });
 
   test('should return empty dashboard when there is no data', async () => {
     const response = await request(app.getHttpServer())
       .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body).toEqual({
@@ -53,13 +67,11 @@ describe('Get Dashboard (E2E)', () => {
   });
 
   test('should return dashboard totals and stack progress', async () => {
-    const { user } = await createTestUser(prisma);
-
     const angular = await prisma.stack.create({
-      data: { name: 'Angular', userId: user.id },
+      data: { name: 'Angular', userId },
     });
     const nest = await prisma.stack.create({
-      data: { name: 'NestJS', userId: user.id },
+      data: { name: 'NestJS', userId },
     });
 
     const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
@@ -113,6 +125,7 @@ describe('Get Dashboard (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body.totals).toEqual({
@@ -148,14 +161,13 @@ describe('Get Dashboard (E2E)', () => {
   });
 
   test('should return 0 progressPercentage when stack has no episodes', async () => {
-    const { user } = await createTestUser(prisma);
-
     const emptyStack = await prisma.stack.create({
-      data: { name: 'Empty', userId: user.id },
+      data: { name: 'Empty', userId },
     });
 
     const response = await request(app.getHttpServer())
       .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body).toEqual({
@@ -178,5 +190,47 @@ describe('Get Dashboard (E2E)', () => {
         },
       ],
     });
+  });
+
+  test('should not include data that belongs to another user', async () => {
+    const ownStack = await prisma.stack.create({
+      data: { name: 'Own', userId },
+    });
+
+    const { user: otherUser } = await createTestUser(prisma);
+    const otherStack = await prisma.stack.create({
+      data: { name: 'Other', userId: otherUser.id },
+    });
+    await prisma.episode.create({
+      data: {
+        title: 'Other episode',
+        error: 'err',
+        solution: 'sol',
+        stackId: otherStack.id,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(response.body.totals).toEqual({
+      stacks: 1,
+      episodes: 0,
+      pending: 0,
+      reviewed: 0,
+      overdue: 0,
+    });
+    expect(response.body.stacks).toHaveLength(1);
+    expect(response.body.stacks[0].id).toBe(ownStack.id);
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/dashboard')
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
   });
 });

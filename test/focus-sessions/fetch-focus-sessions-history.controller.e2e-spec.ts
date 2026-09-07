@@ -4,6 +4,7 @@ import { AppModule } from '@src/app.module';
 import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Fetch Focus Sessions History (E2E)', () => {
   let app: INestApplication;
@@ -11,6 +12,11 @@ describe('Fetch Focus Sessions History (E2E)', () => {
   let stackId: string;
   let episodeId: string;
   let finishedSessionId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
+  let otherUserFinishedSessionId: string;
+  let otherUserStackId: string;
+  let otherUserEpisodeId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -22,7 +28,25 @@ describe('Fetch Focus Sessions History (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
+
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -73,6 +97,40 @@ describe('Fetch Focus Sessions History (E2E)', () => {
       },
     });
     finishedSessionId = finishedSession.id;
+
+    const otherUserStack = await prisma.stack.create({
+      data: { name: 'React', userId: otherUser.id },
+    });
+    otherUserStackId = otherUserStack.id;
+
+    const otherUserEpisode = await prisma.episode.create({
+      data: {
+        title: 'Other Episode 1',
+        stackId: otherUserStackId,
+        error: 'Other Error 1',
+        solution: 'Other Solution 1',
+      },
+    });
+    otherUserEpisodeId = otherUserEpisode.id;
+
+    const otherUserFinishedSession = await prisma.focusSession.create({
+      data: {
+        stackId: otherUserStackId,
+        status: 'finished',
+        currentIndex: 1,
+        finishedAt: new Date(),
+        items: {
+          create: [
+            {
+              episodeId: otherUserEpisodeId,
+              position: 0,
+              status: 'reviewed',
+            },
+          ],
+        },
+      },
+    });
+    otherUserFinishedSessionId = otherUserFinishedSession.id;
   });
 
   afterAll(async () => {
@@ -87,6 +145,7 @@ describe('Fetch Focus Sessions History (E2E)', () => {
   test('should return only finished focus sessions', async () => {
     const response = await request(app.getHttpServer())
       .get('/focus-sessions/history')
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(response.body.focusSessions).toHaveLength(1);
@@ -110,8 +169,44 @@ describe('Fetch Focus Sessions History (E2E)', () => {
     const response = await request(app.getHttpServer())
       .get('/focus-sessions/history')
       .query({ page: '0' })
+      .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.body.message).toContain('Validation failed');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/focus-sessions/history')
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+  });
+
+  test('should return only the focus sessions of the authenticated user', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/focus-sessions/history')
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .expect(200);
+
+    expect(response.body.focusSessions).toHaveLength(1);
+    expect(response.body.focusSessions[0]).toEqual({
+      id: otherUserFinishedSessionId,
+      stackId: otherUserStackId,
+      status: 'finished',
+      startedAt: expect.any(String),
+      currentIndex: 1,
+      items: [
+        {
+          episodeId: otherUserEpisodeId,
+          position: 0,
+          status: 'reviewed',
+        },
+      ],
+    });
+
+    expect(
+      response.body.focusSessions.map((session: { id: string }) => session.id),
+    ).not.toContain(finishedSessionId);
   });
 });

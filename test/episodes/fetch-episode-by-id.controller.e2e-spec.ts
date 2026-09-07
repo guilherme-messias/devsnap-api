@@ -11,8 +11,8 @@ describe('Fetch Episode By Id (E2E)', () => {
   let prisma: PrismaService;
   let stackId: string;
   let accessToken: string;
-  let otherAccessToken: string;
-  let otherEpisodeId: string;
+  let otherUserAccessToken: string;
+  let otherUserEpisodeId: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -31,16 +31,21 @@ describe('Fetch Episode By Id (E2E)', () => {
     });
     stackId = stack.id;
 
-    const auth = await authenticateTestUser(app, user.email, password);
-    accessToken = auth.accessToken;
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
 
-    const { user: otherUser, password: otherPassword } =
+    const { user: otherUser, password: otherUserPassword } =
       await createTestUser(prisma);
+
     const otherStack = await prisma.stack.create({
-      data: { name: 'Go', userId: otherUser.id },
+      data: { name: 'Rust', userId: otherUser.id },
     });
 
-    const otherEpisode = await prisma.episode.create({
+    const otherUserEpisode = await prisma.episode.create({
       data: {
         title: 'Other User Episode',
         stackId: otherStack.id,
@@ -48,14 +53,14 @@ describe('Fetch Episode By Id (E2E)', () => {
         solution: 'Other user solution',
       },
     });
-    otherEpisodeId = otherEpisode.id;
+    otherUserEpisodeId = otherUserEpisode.id;
 
-    const otherAuth = await authenticateTestUser(
+    const otherAuthentication = await authenticateTestUser(
       app,
       otherUser.email,
-      otherPassword,
+      otherUserPassword,
     );
-    otherAccessToken = otherAuth.accessToken;
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -127,10 +132,12 @@ describe('Fetch Episode By Id (E2E)', () => {
     expect(response.body.message).toContain('Validation failed');
   });
 
-  test('should return 401 when no authorization header is provided', async () => {
-    await request(app.getHttpServer())
-      .get(`/episodes/${otherEpisodeId}`)
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
+      .get(`/episodes/${otherUserEpisodeId}`)
       .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
   });
 
   test('should return 404 when the episode belongs to another user', async () => {
@@ -145,7 +152,7 @@ describe('Fetch Episode By Id (E2E)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/episodes/${episode.id}`)
-      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
     expect(response.body).toHaveProperty('statusCode', 404);
@@ -155,7 +162,7 @@ describe('Fetch Episode By Id (E2E)', () => {
     );
 
     await request(app.getHttpServer())
-      .get(`/episodes/${otherEpisodeId}`)
+      .get(`/episodes/${otherUserEpisodeId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
   });

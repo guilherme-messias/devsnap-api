@@ -47,11 +47,7 @@ describe('Create Annotation (E2E)', () => {
       },
     });
 
-    const authenticated = await authenticateTestUser(
-      app,
-      user.email,
-      password,
-    );
+    const authenticated = await authenticateTestUser(app, user.email, password);
     accessToken = authenticated.accessToken;
 
     const { user: otherUser, password: otherPassword } =

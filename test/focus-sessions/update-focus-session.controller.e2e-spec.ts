@@ -5,6 +5,7 @@ import request from 'supertest';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
+import { authenticateTestUser } from '../helpers/authenticate-test-user';
 
 describe('Update Focus Session (E2E)', () => {
   let app: INestApplication;
@@ -12,6 +13,25 @@ describe('Update Focus Session (E2E)', () => {
   let stackId: string;
   let episodeIds: string[];
   let sessionId: string;
+  let accessToken: string;
+  let otherUserAccessToken: string;
+
+  async function createSession() {
+    return prisma.focusSession.create({
+      data: {
+        stackId,
+        status: 'in_progress',
+        currentIndex: 0,
+        items: {
+          create: episodeIds.map((episodeId, position) => ({
+            episodeId,
+            position,
+            status: 'pending',
+          })),
+        },
+      },
+    });
+  }
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -23,7 +43,25 @@ describe('Update Focus Session (E2E)', () => {
 
     await app.init();
 
-    const { user } = await createTestUser(prisma);
+    const { user, password } = await createTestUser(prisma);
+
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
+
+    const { user: otherUser, password: otherUserPassword } =
+      await createTestUser(prisma);
+
+    const otherAuthentication = await authenticateTestUser(
+      app,
+      otherUser.email,
+      otherUserPassword,
+    );
+    otherUserAccessToken = otherAuthentication.accessToken;
+
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId: user.id },
     });
@@ -49,20 +87,7 @@ describe('Update Focus Session (E2E)', () => {
     ]);
     episodeIds = episodes.map((episode) => episode.id);
 
-    const session = await prisma.focusSession.create({
-      data: {
-        stackId,
-        status: 'in_progress',
-        currentIndex: 0,
-        items: {
-          create: episodeIds.map((episodeId, position) => ({
-            episodeId,
-            position,
-            status: 'pending',
-          })),
-        },
-      },
-    });
+    const session = await createSession();
     sessionId = session.id;
   });
 
@@ -78,6 +103,7 @@ describe('Update Focus Session (E2E)', () => {
   test('should update currentIndex when payload is valid', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/focus-sessions/${sessionId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 1 })
       .expect(200);
 
@@ -105,6 +131,7 @@ describe('Update Focus Session (E2E)', () => {
   test('should return 400 when currentIndex is out of bounds', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/focus-sessions/${sessionId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 3 })
       .expect(400);
 
@@ -114,6 +141,7 @@ describe('Update Focus Session (E2E)', () => {
   test('should return 400 when payload is invalid', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/focus-sessions/${sessionId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
@@ -123,9 +151,43 @@ describe('Update Focus Session (E2E)', () => {
   test('should return 404 when focus session does not exist', async () => {
     const response = await request(app.getHttpServer())
       .patch(`/focus-sessions/${randomUUID()}`)
+      .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 0 })
       .expect(404);
 
     expect(response.body.message).toEqual('Focus session not found');
+  });
+
+  test('should return 401 when the authorization header is missing', async () => {
+    const session = await createSession();
+
+    const response = await request(app.getHttpServer())
+      .patch(`/focus-sessions/${session.id}`)
+      .send({ currentIndex: 1 })
+      .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: session.id },
+    });
+    expect(sessionOnDatabase).toMatchObject({ currentIndex: 0 });
+  });
+
+  test('should return 404 when the focus session belongs to another user', async () => {
+    const session = await createSession();
+
+    const response = await request(app.getHttpServer())
+      .patch(`/focus-sessions/${session.id}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
+      .send({ currentIndex: 1 })
+      .expect(404);
+
+    expect(response.body.message).toEqual('Focus session not found');
+
+    const sessionOnDatabase = await prisma.focusSession.findUnique({
+      where: { id: session.id },
+    });
+    expect(sessionOnDatabase).toMatchObject({ currentIndex: 0 });
   });
 });

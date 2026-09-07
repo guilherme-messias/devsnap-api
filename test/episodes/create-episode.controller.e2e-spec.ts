@@ -11,7 +11,7 @@ describe('Create Episode (E2E)', () => {
   let prisma: PrismaService;
   let stackId: string;
   let accessToken: string;
-  let otherAccessToken: string;
+  let otherUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -30,21 +30,26 @@ describe('Create Episode (E2E)', () => {
     });
     stackId = stack.id;
 
-    const auth = await authenticateTestUser(app, user.email, password);
-    accessToken = auth.accessToken;
+    const authentication = await authenticateTestUser(
+      app,
+      user.email,
+      password,
+    );
+    accessToken = authentication.accessToken;
 
-    const { user: otherUser, password: otherPassword } =
+    const { user: otherUser, password: otherUserPassword } =
       await createTestUser(prisma);
+
     await prisma.stack.create({
-      data: { name: 'Go', userId: otherUser.id },
+      data: { name: 'Rust', userId: otherUser.id },
     });
 
-    const otherAuth = await authenticateTestUser(
+    const otherAuthentication = await authenticateTestUser(
       app,
       otherUser.email,
-      otherPassword,
+      otherUserPassword,
     );
-    otherAccessToken = otherAuth.accessToken;
+    otherUserAccessToken = otherAuthentication.accessToken;
   });
 
   afterAll(async () => {
@@ -109,8 +114,8 @@ describe('Create Episode (E2E)', () => {
     expect(response.body.message).toEqual('Validation failed');
   });
 
-  test('should return 401 when no authorization header is provided', async () => {
-    await request(app.getHttpServer())
+  test('should return 401 when the authorization header is missing', async () => {
+    const response = await request(app.getHttpServer())
       .post('/episodes')
       .send({
         title: 'Test Episode',
@@ -119,12 +124,14 @@ describe('Create Episode (E2E)', () => {
         solution: 'Some solution',
       })
       .expect(401);
+
+    expect(response.body.message).toBe('Unauthorized');
   });
 
   test('should return 404 when the stack belongs to another user', async () => {
     const response = await request(app.getHttpServer())
       .post('/episodes')
-      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({
         title: 'Test Episode',
         stackId,
