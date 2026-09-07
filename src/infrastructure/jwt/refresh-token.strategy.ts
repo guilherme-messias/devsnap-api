@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
@@ -20,7 +24,12 @@ export class RefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  validate(req: Request, payload: { sub: string; email: string }) {
+  validate(
+    req: Request,
+    payload: { sub: string; email: string; typ: string },
+  ) {
+    if (payload.typ !== 'refresh')
+      throw new UnauthorizedException('Invalid token type');
     const authHeader = req.get('Authorization');
     if (!authHeader) throw new ForbiddenException('Refresh token not sent');
 

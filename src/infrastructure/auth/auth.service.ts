@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import argon2 from 'argon2';
 import { ConfigService } from '@nestjs/config';
+import { JwtSignOptions } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -13,23 +14,29 @@ export class AuthService {
 
   async generateToken(userId: string, email: string) {
     const payload = { sub: userId, email };
+    const keyOptionsAccessToken: JwtSignOptions = {
+      privateKey: Buffer.from(
+        this.configService.get('JWT_PRIVATE_KEY'),
+        'base64',
+      ).toString('utf-8'),
+      algorithm: 'RS256',
+      expiresIn: '15m',
+    };
+    const keyOptionsRefreshToken: JwtSignOptions = {
+      privateKey: Buffer.from(
+        this.configService.get('JWT_PRIVATE_KEY'),
+        'base64',
+      ).toString('utf-8'),
+      algorithm: 'RS256',
+      expiresIn: '7d',
+    };
+
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwt.signAsync(payload, {
-        privateKey: Buffer.from(
-          this.configService.get('JWT_PRIVATE_KEY'),
-          'base64',
-        ).toString('utf-8'),
-        algorithm: 'RS256',
-        expiresIn: '15m',
-      }),
-      this.jwt.signAsync(payload, {
-        privateKey: Buffer.from(
-          this.configService.get('JWT_PRIVATE_KEY'),
-          'base64',
-        ).toString('utf-8'),
-        algorithm: 'RS256',
-        expiresIn: '7d',
-      }),
+      this.jwt.signAsync({ ...payload, typ: 'access' }, keyOptionsAccessToken),
+      this.jwt.signAsync(
+        { ...payload, typ: 'refresh' },
+        keyOptionsRefreshToken,
+      ),
     ]);
     return { accessToken, refreshToken };
   }
