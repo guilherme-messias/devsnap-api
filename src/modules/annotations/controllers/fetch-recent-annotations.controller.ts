@@ -9,23 +9,18 @@ import {
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import z from 'zod';
 import { FetchRecentAnnotationsService } from '../services/fetch-recent-annotations.service';
-import { FetchRecentAnnotationsResponseDto } from './schemas/response/fetch-recent-annotations.response.schema';
-
-const pageQueryParamsSchema = z
-  .string()
-  .optional()
-  .default('1')
-  .transform(Number)
-  .pipe(z.number().int().min(1));
+import { FetchRecentAnnotationsResponseDto } from '../schemas/response/fetch-recent-annotations.response.schema';
+import {
+  pageQueryParamsSchema,
+  type PageQueryParams,
+} from '@src/shared/http/schemas/request/page-query.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
-type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
-
-const episodeIdSchema = z.uuid();
-type EpisodeId = z.infer<typeof episodeIdSchema>;
-
 @ApiTags('annotations')
 @Controller('/episodes')
 export class FetchRecentAnnotationsController {
@@ -72,8 +67,8 @@ export class FetchRecentAnnotationsController {
   })
   async fetchRecentAnnotations(
     @Query('page', queryValidationPipe) page: PageQueryParams,
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
-    episodeId: EpisodeId,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
   ) {
     const perPage = 1;
 

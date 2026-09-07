@@ -1,4 +1,4 @@
-import { annotationResponseSchema } from '@src/modules/episodes/controllers/schemas/response/create-episode.response.schema';
+import { annotationResponseSchema } from '@src/modules/episodes/schemas/response/create-episode.response.schema';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 

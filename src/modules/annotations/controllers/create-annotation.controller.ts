@@ -5,14 +5,14 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateAnnotationDto,
   createAnnotationSchema,
-} from './schemas/request/create-annotation.request.schema';
+} from '../schemas/request/create-annotation.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
-import z from 'zod';
-import { CreateAnnotationResponseDto } from './schemas/response/create-annotation.response.schema';
+import { CreateAnnotationResponseDto } from '../schemas/response/create-annotation.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
-
-const episodeIdSchema = z.uuid();
-type EpisodeId = z.infer<typeof episodeIdSchema>;
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -46,8 +46,8 @@ export class CreateAnnotationController {
     type: EpisodeNotFoundErrorResponseDto,
   })
   async createAnnotation(
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
-    episodeId: EpisodeId,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
     @Body(new ZodValidationPipe(createAnnotationSchema))
     body: CreateAnnotationDto,
   ) {

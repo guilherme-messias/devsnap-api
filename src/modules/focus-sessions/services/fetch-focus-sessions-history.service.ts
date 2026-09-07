@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
+import { PaginationParams } from '@src/shared/http/schemas/request/page-query.schema';
 import {
   focusSessionWithItemsInclude,
   toFocusSessionResponse,
@@ -9,7 +10,7 @@ import {
 export class FetchFocusSessionsHistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async fetchFocusSessionsHistory(data: { page: number; perPage: number }) {
+  async fetchFocusSessionsHistory(data: PaginationParams) {
     const { page, perPage } = data;
 
     const focusSessions = await this.prisma.focusSession.findMany({

@@ -1,17 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { PaginationParams } from '@shared/http/schemas/request/page-query.schema';
 
 @Injectable()
 export class FetchRecentAnnotationsService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchRecentAnnotations(
-    data: {
-      page: number;
-      perPage: number;
-    },
-    episodeId: string,
-  ) {
+  async fetchRecentAnnotations(data: PaginationParams, episodeId: string) {
     const { page, perPage } = data;
 
     const episode = await this.prisma.episode.findUnique({

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import { AuthService } from '@src/infrastructure/auth/auth.service';
-import { RefreshUserDto } from '../controllers/schemas/request/refresh-user.request';
+import { RefreshUserDto } from '../schemas/request/refresh-user.request.schema';
 import argon2 from 'argon2';
 
 @Injectable()

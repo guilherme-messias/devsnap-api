@@ -10,11 +10,11 @@ import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { FocusSessionNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-not-found-error.response.schema';
 import { FinishFocusSessionService } from '../services/finish-focus-session.service';
-import { FinishFocusSessionResponseDto } from './schemas/response/finish-focus-session.response.schema';
-import z from 'zod';
-
-const sessionIdSchema = z.uuid();
-type SessionId = z.infer<typeof sessionIdSchema>;
+import { FinishFocusSessionResponseDto } from '../schemas/response/finish-focus-session.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
@@ -48,8 +48,8 @@ export class FinishFocusSessionController {
     type: FocusSessionNotFoundErrorResponseDto,
   })
   async finishFocusSession(
-    @Param('sessionId', new ZodValidationPipe(sessionIdSchema))
-    sessionId: SessionId,
+    @Param('sessionId', new ZodValidationPipe(uuidParamSchema))
+    sessionId: UuidParam,
   ) {
     const focusSession =
       await this.finishFocusSessionService.finishFocusSession(sessionId);

@@ -15,12 +15,12 @@ import { UpdateFocusSessionService } from '../services/update-focus-session.serv
 import {
   UpdateFocusSessionDto,
   updateFocusSessionSchema,
-} from './schemas/request/update-focus-session.request.schema';
-import { UpdateFocusSessionResponseDto } from './schemas/response/update-focus-session.response.schema';
-import z from 'zod';
-
-const sessionIdSchema = z.uuid();
-type SessionId = z.infer<typeof sessionIdSchema>;
+} from '../schemas/request/update-focus-session.request.schema';
+import { UpdateFocusSessionResponseDto } from '../schemas/response/update-focus-session.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
@@ -54,8 +54,8 @@ export class UpdateFocusSessionController {
     type: FocusSessionNotFoundErrorResponseDto,
   })
   async updateFocusSession(
-    @Param('sessionId', new ZodValidationPipe(sessionIdSchema))
-    sessionId: SessionId,
+    @Param('sessionId', new ZodValidationPipe(uuidParamSchema))
+    sessionId: UuidParam,
     @Body(new ZodValidationPipe(updateFocusSessionSchema))
     body: UpdateFocusSessionDto,
   ) {

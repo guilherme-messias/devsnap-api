@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
 import * as argon2 from 'argon2';
-import { CreateUserDto } from '../controllers/schemas/request/create-user.request';
+import { CreateUserDto } from '../schemas/request/create-user.request.schema';
 
 @Injectable()
 export class CreateUserService {

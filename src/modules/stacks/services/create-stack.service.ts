@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
-import { CreateStackDto } from '../controllers/schemas/request/create-stack.request';
+import { CreateStackDto } from '../schemas/request/create-stack.request.schema';
 
 @Injectable()
 export class CreateStackService {

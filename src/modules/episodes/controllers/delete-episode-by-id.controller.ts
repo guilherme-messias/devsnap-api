@@ -6,17 +6,16 @@ import {
   Param,
 } from '@nestjs/common';
 import { DeleteEpisodeByIdService } from '../services/delete-episode-by-id.service';
-import z from 'zod';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
-const idParamSchema = z.uuid();
-
-const paramValidationPipe = new ZodValidationPipe(idParamSchema);
-type IdParam = z.infer<typeof idParamSchema>;
-
+const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('episodes')
 @Controller('/episodes')
 export class DeleteEpisodeByIdController {
@@ -49,14 +48,12 @@ export class DeleteEpisodeByIdController {
     description: 'Episode not found',
     type: EpisodeNotFoundErrorResponseDto,
   })
-  async deleteEpisodeById(@Param('id', paramValidationPipe) id: IdParam) {
+  async deleteEpisodeById(@Param('id', paramValidationPipe) id: UuidParam) {
     const deletedEpisode =
       await this.deleteEpisodeByIdService.deleteEpisodeById(id);
 
     if (!deletedEpisode) {
-      throw new NotFoundException(
-        `Episode with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Episode with ID ${id} not found`);
     }
 
     return;

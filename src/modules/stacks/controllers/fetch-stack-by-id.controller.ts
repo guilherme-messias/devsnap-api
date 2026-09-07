@@ -7,17 +7,16 @@ import {
   NotFoundException,
   Param,
 } from '@nestjs/common';
-import { FetchStackResponseDto } from './schemas/response/fetch-stack.response.schema';
-import z from 'zod';
+import { FetchStackResponseDto } from '../schemas/response/fetch-stack.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { FetchStackByIdService } from '../services/fetch-stack-by-id.service';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
-const idParamSchema = z.uuid();
-
-const paramValidationPipe = new ZodValidationPipe(idParamSchema);
-type IdParam = z.infer<typeof idParamSchema>;
-
+const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('stacks')
 @Controller('/stacks')
 export class FetchStackByIdController {
@@ -49,13 +48,11 @@ export class FetchStackByIdController {
     description: 'Stack not found',
     type: EpisodeNotFoundErrorResponseDto,
   })
-  async fetchStackById(@Param('id', paramValidationPipe) id: IdParam) {
+  async fetchStackById(@Param('id', paramValidationPipe) id: UuidParam) {
     const stack = await this.fetchStackByIdService.fetchStackById(id);
 
     if (!stack) {
-      throw new NotFoundException(
-        `Stack with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Stack with ID ${id} not found`);
     }
 
     return { stack };

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { GetUserProfileService } from '../services/get-user-profile.service';
 import type { RequestWithUser } from './types/request-with-user';
-import { UserProfileResponseDto } from './schemas/response/get-user-profile.response.schema';
+import { UserProfileResponseDto } from '../schemas/response/get-user-profile.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { UserNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/user-not-found-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';

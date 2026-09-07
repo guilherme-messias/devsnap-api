@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { PaginationParams } from '@shared/http/schemas/request/page-query.schema';
 
 @Injectable()
 export class FetchRecentEpisodesService {
   constructor(private prisma: PrismaService) {}
 
-  async fetchRecentEpisodes(data: { page: number; perPage: number }) {
+  async fetchRecentEpisodes(data: PaginationParams) {
     const { page, perPage } = data;
 
     const episodes = await this.prisma.episode.findMany({

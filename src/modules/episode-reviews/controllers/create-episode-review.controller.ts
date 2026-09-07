@@ -11,15 +11,16 @@ import { CreateEpisodeReviewService } from '../services/create-episode-review.se
 import {
   CreateEpisodeReviewDto,
   createEpisodeReviewSchema,
-} from './schemas/request/create-episode-review.request.schema';
+} from '../schemas/request/create-episode-review.request.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import { CreateEpisodeReviewResponseDto } from './schemas/response/create-episode-review.response.schema';
+import { CreateEpisodeReviewResponseDto } from '../schemas/response/create-episode-review.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import z from 'zod';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
-const idParamSchema = z.uuid();
-type IdParam = z.infer<typeof idParamSchema>;
 @ApiTags('episode-reviews')
 @Controller('/episodes')
 export class CreateEpisodeReviewController {
@@ -52,8 +53,8 @@ export class CreateEpisodeReviewController {
     type: EpisodeNotFoundErrorResponseDto,
   })
   async createEpisodeReview(
-    @Param('episodeId', new ZodValidationPipe(idParamSchema))
-    episodeId: IdParam,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
     @Body(new ZodValidationPipe(createEpisodeReviewSchema))
     body: CreateEpisodeReviewDto,
   ) {

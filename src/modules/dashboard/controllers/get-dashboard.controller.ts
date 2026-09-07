@@ -1,7 +1,7 @@
 import { Controller, Get, HttpCode } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetDashboardService } from '../services/get-dashboard.service';
-import { GetDashboardResponseDto } from './schemas/response/get-dashboard.response.schema';
+import { GetDashboardResponseDto } from '../schemas/response/get-dashboard.response.schema';
 
 @ApiTags('dashboard')
 @Controller('/dashboard')

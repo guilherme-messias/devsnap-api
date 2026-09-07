@@ -6,17 +6,16 @@ import {
   Param,
 } from '@nestjs/common';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import z from 'zod';
 import { DeleteLastEpisodeReviewService } from '../services/delete-last-episode-review.service';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EpisodeReviewOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-review-or-episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
-const episodeIdSchema = z.uuid();
-
-const paramValidationPipe = new ZodValidationPipe(episodeIdSchema);
-type EpisodeId = z.infer<typeof episodeIdSchema>;
-
+const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('episode-reviews')
 @Controller('/episodes')
 export class DeleteLastEpisodeReviewController {
@@ -51,7 +50,7 @@ export class DeleteLastEpisodeReviewController {
   })
   async deleteLastEpisodeReview(
     @Param('episodeId', paramValidationPipe)
-    episodeId: EpisodeId,
+    episodeId: UuidParam,
   ) {
     const deletedEpisodeReview =
       await this.deleteLastEpisodeReviewService.deleteLastEpisodeReview(

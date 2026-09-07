@@ -8,12 +8,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { AuthenticateUserResponseDto } from './schemas/response/authenticate-user.response.schema';
+import { AuthenticateUserResponseDto } from '../schemas/response/authenticate-user.response.schema';
 import { EmailOrPasswordInvalidErrorResponseDto } from '@src/shared/http/schemas/response/email-or-password-invalid.response.schema';
 import {
   AuthenticateUserDto,
   authenticateUserSchema,
-} from './schemas/request/authenticate-user.request';
+} from '../schemas/request/authenticate-user.request.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 

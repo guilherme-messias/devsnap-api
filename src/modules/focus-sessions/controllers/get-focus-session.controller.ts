@@ -10,16 +10,18 @@ import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { FocusSessionNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-not-found-error.response.schema';
 import { GetFocusSessionService } from '../services/get-focus-session.service';
-import { GetFocusSessionResponseDto } from './schemas/response/get-focus-session.response.schema';
-import z from 'zod';
-
-const sessionIdSchema = z.uuid();
-type SessionId = z.infer<typeof sessionIdSchema>;
+import { GetFocusSessionResponseDto } from '../schemas/response/get-focus-session.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')
 export class GetFocusSessionController {
-  constructor(private readonly getFocusSessionService: GetFocusSessionService) {}
+  constructor(
+    private readonly getFocusSessionService: GetFocusSessionService,
+  ) {}
 
   @Get(':sessionId')
   @HttpCode(200)
@@ -46,8 +48,8 @@ export class GetFocusSessionController {
     type: FocusSessionNotFoundErrorResponseDto,
   })
   async getFocusSession(
-    @Param('sessionId', new ZodValidationPipe(sessionIdSchema))
-    sessionId: SessionId,
+    @Param('sessionId', new ZodValidationPipe(uuidParamSchema))
+    sessionId: UuidParam,
   ) {
     const focusSession =
       await this.getFocusSessionService.getFocusSession(sessionId);

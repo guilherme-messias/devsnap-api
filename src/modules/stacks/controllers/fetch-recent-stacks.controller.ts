@@ -1,20 +1,15 @@
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
-import z from 'zod';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { FetchRecentStacksService } from '../services/fetch-recent-stacks.service';
-import { FetchRecentStacksResponseDto } from './schemas/response/fetch-recent-stacks.schema';
-
-const pageQueryParamsSchema = z
-  .string()
-  .optional()
-  .default('1')
-  .transform(Number)
-  .pipe(z.number().int().min(1));
+import { FetchRecentStacksResponseDto } from '../schemas/response/fetch-recent-stacks.response.schema';
+import {
+  pageQueryParamsSchema,
+  type PageQueryParams,
+} from '@shared/http/schemas/request/page-query.schema';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
-type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
 
 @ApiTags('stacks')
 @Controller('/stacks')

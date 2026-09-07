@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
-import { CreateEpisodeDto } from '../controllers/schemas/request/create-episode.request.schema';
+import { CreateEpisodeDto } from '../schemas/request/create-episode.request.schema';
 
 @Injectable()
 export class CreateEpisodeService {

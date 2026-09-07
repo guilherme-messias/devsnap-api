@@ -7,16 +7,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import z from 'zod';
 import { DeleteAnnotationByIdService } from '../services/delete-annotation-by-id.service';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
-
-const episodeIdSchema = z.uuid();
-type EpisodeId = z.infer<typeof episodeIdSchema>;
-
-const idSchema = z.uuid();
-type Id = z.infer<typeof idSchema>;
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -57,9 +54,9 @@ export class DeleteAnnotationByIdController {
     type: AnnotationOrEpisodeNotFoundErrorResponseDto,
   })
   async deleteAnnotationById(
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
-    episodeId: EpisodeId,
-    @Param('id', new ZodValidationPipe(idSchema)) id: Id,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
+    @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
   ) {
     const deletedAnnotation =
       await this.deleteAnnotationByIdService.deleteAnnotationById(

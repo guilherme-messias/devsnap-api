@@ -16,12 +16,12 @@ import { ReviewFocusSessionItemService } from '../services/review-focus-session-
 import {
   ReviewFocusSessionItemDto,
   reviewFocusSessionItemSchema,
-} from './schemas/request/review-focus-session-item.request.schema';
-import { ReviewFocusSessionItemResponseDto } from './schemas/response/review-focus-session-item.response.schema';
-import z from 'zod';
-
-const uuidParamSchema = z.uuid();
-type UuidParam = z.infer<typeof uuidParamSchema>;
+} from '../schemas/request/review-focus-session-item.request.schema';
+import { ReviewFocusSessionItemResponseDto } from '../schemas/response/review-focus-session-item.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')

@@ -15,7 +15,7 @@ import {
   ApiExtraModels,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { RefreshUserResponseDto } from './schemas/response/refresh-user.response.schema';
+import { RefreshUserResponseDto } from '../schemas/response/refresh-user.response.schema';
 import { RefreshTokenInvalidErrorResponseDto } from '@src/shared/http/schemas/response/refresh-token-invalid.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@src/shared/http/schemas/response/jwt-unauthorized-error.response.schema';
 import { AuthGuard } from '@nestjs/passport';

@@ -12,11 +12,11 @@ import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/va
 import { FocusSessionNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-not-found-error.response.schema';
 import { FocusSessionItemNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/focus-session-item-not-found-error.response.schema';
 import { SkipFocusSessionItemService } from '../services/skip-focus-session-item.service';
-import { SkipFocusSessionItemResponseDto } from './schemas/response/skip-focus-session-item.response.schema';
-import z from 'zod';
-
-const uuidParamSchema = z.uuid();
-type UuidParam = z.infer<typeof uuidParamSchema>;
+import { SkipFocusSessionItemResponseDto } from '../schemas/response/skip-focus-session-item.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')

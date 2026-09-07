@@ -8,14 +8,14 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateUserService } from '../services/create-user.service';
-import { CreateUserResponseDto } from './schemas/response/create-user.response.schema';
+import { CreateUserResponseDto } from '../schemas/response/create-user.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { UserAlreadyExistsErrorResponseDto } from '@src/shared/http/schemas/response/user-already-exists-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import {
   CreateUserDto,
   createUserSchema,
-} from './schemas/request/create-user.request';
+} from '../schemas/request/create-user.request.schema';
 
 @ApiTags('users')
 @Controller('/auth')

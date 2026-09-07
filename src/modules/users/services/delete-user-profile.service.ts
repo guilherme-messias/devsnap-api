@@ -16,15 +16,15 @@ export class DeleteUserProfileService {
 
     const deletedUser = await this.prisma.user.delete({
       where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      role: true,
-      createdAt: true,
-      updatedAt: true,
-    },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return deletedUser;

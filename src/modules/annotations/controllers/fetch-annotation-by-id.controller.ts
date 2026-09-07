@@ -8,16 +8,13 @@ import {
 } from '@nestjs/common';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
-import z from 'zod';
-import { FetchAnnotationResponseDto } from './schemas/response/fetch-annotation.response.schema';
+import { FetchAnnotationResponseDto } from '../schemas/response/fetch-annotation.response.schema';
 import { FetchAnnotationByIdService } from '../services/fetch-annotation-by-id.service';
 import { AnnotationOrEpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/annotation-or-episode-not-found-error.response.schema';
-
-const episodeIdSchema = z.uuid();
-type EpisodeId = z.infer<typeof episodeIdSchema>;
-
-const idSchema = z.uuid();
-type Id = z.infer<typeof idSchema>;
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('annotations')
 @Controller('/episodes')
@@ -59,9 +56,9 @@ export class FetchAnnotationByIdController {
     type: AnnotationOrEpisodeNotFoundErrorResponseDto,
   })
   async fetchAnnotationById(
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
-    episodeId: EpisodeId,
-    @Param('id', new ZodValidationPipe(idSchema)) id: Id,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
+    @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
   ) {
     const annotation =
       await this.fetchAnnotationByIdService.fetchAnnotationById(id, episodeId);

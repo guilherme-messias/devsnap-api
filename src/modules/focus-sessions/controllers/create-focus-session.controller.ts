@@ -14,8 +14,8 @@ import { CreateFocusSessionService } from '../services/create-focus-session.serv
 import {
   CreateFocusSessionDto,
   createFocusSessionSchema,
-} from './schemas/request/create-focus-session.request.schema';
-import { CreateFocusSessionResponseDto } from './schemas/response/create-focus-session.response.schema';
+} from '../schemas/request/create-focus-session.request.schema';
+import { CreateFocusSessionResponseDto } from '../schemas/response/create-focus-session.response.schema';
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')

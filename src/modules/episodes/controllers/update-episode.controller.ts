@@ -8,18 +8,18 @@ import {
 } from '@nestjs/common';
 import { UpdateEpisodeService } from '../services/update-episode.service';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
-import z from 'zod';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   updateEpisodeSchema,
   UpdateEpisodeDto,
-} from './schemas/request/update-episode.request.schema';
+} from '../schemas/request/update-episode.request.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
-import { UpdateEpisodeResponseDto } from './schemas/response/update-episode-response.schema';
-
-const idParamSchema = z.uuid();
-type IdParam = z.infer<typeof idParamSchema>;
+import { UpdateEpisodeResponseDto } from '../schemas/response/update-episode.response.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 @ApiTags('episodes')
 @Controller('/episodes')
@@ -53,7 +53,7 @@ export class UpdateEpisodeController {
     type: EpisodeNotFoundErrorResponseDto,
   })
   async updateEpisode(
-    @Param('id', new ZodValidationPipe(idParamSchema)) id: IdParam,
+    @Param('id', new ZodValidationPipe(uuidParamSchema)) id: UuidParam,
     @Body(new ZodValidationPipe(updateEpisodeSchema))
     body: UpdateEpisodeDto,
   ) {
@@ -63,9 +63,7 @@ export class UpdateEpisodeController {
     );
 
     if (!updatedEpisode) {
-      throw new NotFoundException(
-        `Episode with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Episode with ID ${id} not found`);
     }
 
     return { episode: updatedEpisode };

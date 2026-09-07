@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@src/infrastructure/prisma/prisma.service';
-import { UpdateAnnotationDto } from '../controllers/schemas/request/update-annotation.request.schema';
+import { UpdateAnnotationDto } from '../schemas/request/update-annotation.request.schema';
 
 @Injectable()
 export class UpdateAnnotationService {

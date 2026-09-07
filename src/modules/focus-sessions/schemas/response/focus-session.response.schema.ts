@@ -7,10 +7,7 @@ export const focusSessionItemStatusSchema = z.enum([
   'skipped',
 ]);
 
-export const focusSessionStatusSchema = z.enum([
-  'in_progress',
-  'finished',
-]);
+export const focusSessionStatusSchema = z.enum(['in_progress', 'finished']);
 
 export const focusSessionItemResponseSchema = z.object({
   episodeId: z.uuid(),

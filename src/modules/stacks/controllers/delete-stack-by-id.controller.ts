@@ -6,17 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import z from 'zod';
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { DeleteStackByIdService } from '../services/delete-stack-by-id.service';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
-const idParamSchema = z.uuid();
-
-const paramValidationPipe = new ZodValidationPipe(idParamSchema);
-type IdParam = z.infer<typeof idParamSchema>;
-
+const paramValidationPipe = new ZodValidationPipe(uuidParamSchema);
 @ApiTags('stacks')
 @Controller('/stacks')
 export class DeleteStackByIdController {
@@ -49,13 +48,11 @@ export class DeleteStackByIdController {
     description: 'Stack not found',
     type: EpisodeNotFoundErrorResponseDto,
   })
-  async deleteStackById(@Param('id', paramValidationPipe) id: IdParam) {
+  async deleteStackById(@Param('id', paramValidationPipe) id: UuidParam) {
     const deletedStack = await this.deleteStackByIdService.deleteStackById(id);
 
     if (!deletedStack) {
-      throw new NotFoundException(
-        `Stack with ID ${id} not found`,
-      );
+      throw new NotFoundException(`Stack with ID ${id} not found`);
     }
 
     return;

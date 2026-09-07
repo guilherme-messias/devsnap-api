@@ -3,18 +3,13 @@ import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { FetchFocusSessionsHistoryService } from '../services/fetch-focus-sessions-history.service';
-import { FetchFocusSessionsHistoryResponseDto } from './schemas/response/fetch-focus-sessions-history.response.schema';
-import z from 'zod';
-
-const pageQueryParamsSchema = z
-  .string()
-  .optional()
-  .default('1')
-  .transform(Number)
-  .pipe(z.number().int().min(1));
+import { FetchFocusSessionsHistoryResponseDto } from '../schemas/response/fetch-focus-sessions-history.response.schema';
+import {
+  pageQueryParamsSchema,
+  type PageQueryParams,
+} from '@src/shared/http/schemas/request/page-query.schema';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
-type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
 
 @ApiTags('focus-sessions')
 @Controller('/focus-sessions')

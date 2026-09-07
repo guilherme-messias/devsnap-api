@@ -16,23 +16,18 @@ import {
 import { EpisodeNotFoundErrorResponseDto } from '@src/shared/http/schemas/response/episode-not-found-error.response.schema';
 import { ValidationErrorResponseDto } from '@src/shared/http/schemas/response/validation-error.response.schema';
 import { ZodValidationPipe } from '@src/shared/pipes/ZodValidationPipe';
-import z from 'zod';
 import { FetchRecentEpisodeReviewsService } from '../services/fetch-recent-episode-reviews.service';
-import { FetchRecentEpisodeReviewsResponseDto } from './schemas/response/fetch-recent-episode-reviews.response.schema';
-
-const pageQueryParamsSchema = z
-  .string()
-  .optional()
-  .default('1')
-  .transform(Number)
-  .pipe(z.number().int().min(1));
+import { FetchRecentEpisodeReviewsResponseDto } from '../schemas/response/fetch-recent-episode-reviews.response.schema';
+import {
+  pageQueryParamsSchema,
+  type PageQueryParams,
+} from '@src/shared/http/schemas/request/page-query.schema';
+import {
+  uuidParamSchema,
+  type UuidParam,
+} from '@src/shared/http/schemas/request/uuid-param.schema';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
-type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
-
-const episodeIdSchema = z.uuid();
-type EpisodeId = z.infer<typeof episodeIdSchema>;
-
 @ApiTags('episode-reviews')
 @Controller('/episodes')
 export class FetchRecentEpisodeReviewsController {
@@ -79,8 +74,8 @@ export class FetchRecentEpisodeReviewsController {
   })
   async fetchRecentEpisodeReviews(
     @Query('page', queryValidationPipe) page: PageQueryParams,
-    @Param('episodeId', new ZodValidationPipe(episodeIdSchema))
-    episodeId: EpisodeId,
+    @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
+    episodeId: UuidParam,
   ) {
     const perPage = 1;
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
-import { UpdateEpisodeDto } from '../controllers/schemas/request/update-episode.request.schema';
+import { UpdateEpisodeDto } from '../schemas/request/update-episode.request.schema';
 
 @Injectable()
 export class UpdateEpisodeService {

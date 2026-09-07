@@ -1,21 +1,15 @@
 import { Controller, HttpCode, Get, Query } from '@nestjs/common';
-import z from 'zod';
 import { ZodValidationPipe } from '@shared/pipes/ZodValidationPipe';
 import { FetchRecentEpisodesService } from '../services/fetch-recent-episodes.service';
 import { ApiQuery, ApiResponse, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
-import { FetchRecentEpisodesResponseDto } from './schemas/response/fetch-recent-episodes.schema';
-
-const pageQueryParamsSchema = z
-  .string()
-  .optional()
-  .default('1')
-  .transform(Number)
-  .pipe(z.number().int().min(1));
+import { FetchRecentEpisodesResponseDto } from '../schemas/response/fetch-recent-episodes.response.schema';
+import {
+  pageQueryParamsSchema,
+  type PageQueryParams,
+} from '@shared/http/schemas/request/page-query.schema';
 
 const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
-type PageQueryParams = z.infer<typeof pageQueryParamsSchema>;
-
 @ApiTags('episodes')
 @Controller('/episodes')
 export class FetchRecentEpisodesController {
