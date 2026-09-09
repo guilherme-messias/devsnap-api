@@ -10,3 +10,10 @@ services:
       - '5434:5432'
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
+  devsnap-redis:
+    container_name: devsnap-redis
+    image: redis:alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./data/redis:/data
