@@ -1,13 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
 
+const CACHE_TTL_IN_SECONDS = 60 * 5;
 const OVERDUE_DAYS = 7;
 
 @Injectable()
 export class GetDashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheRepository,
+  ) {}
 
   async getDashboard(userId: string) {
+    const cacheKey = `dashboard:${userId}`;
+
+    const cached = await this.cache.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const dashboard = await this.buildDashboard(userId);
+    await this.cache.set(
+      cacheKey,
+      JSON.stringify(dashboard),
+      CACHE_TTL_IN_SECONDS,
+    );
+    return dashboard;
+  }
+
+  private async buildDashboard(userId: string) {
     const stacks = await this.prisma.stack.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
@@ -22,24 +44,19 @@ export class GetDashboardService {
         },
       },
     });
-
     const overdueThreshold = new Date(
       Date.now() - OVERDUE_DAYS * 24 * 60 * 60 * 1000,
     );
-
     let totalEpisodes = 0;
     let totalPending = 0;
     let totalReviewed = 0;
     let totalOverdue = 0;
-
     const stackSummaries = stacks.map((stack) => {
       let pendingCount = 0;
       let reviewedCount = 0;
       let overdueCount = 0;
-
       for (const episode of stack.episodes) {
         const isReviewed = episode.episodeReviews.length > 0;
-
         if (isReviewed) {
           reviewedCount += 1;
         } else {
@@ -49,13 +66,11 @@ export class GetDashboardService {
           }
         }
       }
-
       const episodeCount = stack.episodes.length;
       totalEpisodes += episodeCount;
       totalPending += pendingCount;
       totalReviewed += reviewedCount;
       totalOverdue += overdueCount;
-
       return {
         id: stack.id,
         name: stack.name,
@@ -69,7 +84,6 @@ export class GetDashboardService {
             : Math.round((reviewedCount / episodeCount) * 10000) / 100,
       };
     });
-
     return {
       totals: {
         stacks: stacks.length,
