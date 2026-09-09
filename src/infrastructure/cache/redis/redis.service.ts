@@ -15,9 +15,8 @@ export class RedisService
       throw new Error('REDIS_URL is not defined.');
     }
 
-    this.client = createClient({
-      url: process.env.REDIS_URL,
-    });
+    this.client = createClient({ url });
+    this.client.on('error', (error) => console.error('Redis error', error));
   }
   async set(key: string, value: string, ttlInSeconds?: number): Promise<void> {
     if (ttlInSeconds) {
