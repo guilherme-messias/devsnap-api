@@ -11,6 +11,7 @@ import { FocusSessionsModule } from './modules/focus-sessions/focus-sessions.mod
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './infrastructure/auth/auth.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       envFilePath: '.env',
     }),
     PrismaModule,
+    RedisModule,
     AuthModule,
     EpisodesModule,
     StacksModule,
