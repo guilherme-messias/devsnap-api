@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { CacheKeys } from '@infrastructure/cache/cache-leys';
 
 @Injectable()
 export class DeleteUserProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheRepository,
+  ) {}
 
   async deleteUserProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -14,6 +19,7 @@ export class DeleteUserProfileService {
       return null;
     }
 
+    
     const deletedUser = await this.prisma.user.delete({
       where: { id: userId },
       select: {
@@ -26,7 +32,9 @@ export class DeleteUserProfileService {
         updatedAt: true,
       },
     });
-
+    
+    this.cache.delete(CacheKeys.dashboard(userId));
+    
     return deletedUser;
   }
 }

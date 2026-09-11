@@ -13,6 +13,7 @@ import { GetUserProfileService } from './services/get-user-profile.service';
 import { GetUserProfileController } from './controllers/get-user-profile.controller';
 import { DeleteUserProfileController } from './controllers/delete-user-profile.controller';
 import { DeleteUserProfileService } from './services/delete-user-profile.service';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 @Module({
   controllers: [
     CreateUserController,
@@ -22,7 +23,7 @@ import { DeleteUserProfileService } from './services/delete-user-profile.service
     GetUserProfileController,
     DeleteUserProfileController,
   ],
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, RedisModule],
   providers: [
     CreateUserService,
     AuthenticateUserService,
