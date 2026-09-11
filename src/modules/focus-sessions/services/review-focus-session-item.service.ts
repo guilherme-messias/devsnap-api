@@ -4,10 +4,15 @@ import {
   focusSessionWithItemsInclude,
   toFocusSessionResponse,
 } from '../mappers/to-focus-session-response';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { CacheKeys } from '@infrastructure/cache/cache-leys';
 
 @Injectable()
 export class ReviewFocusSessionItemService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheRepository,
+  ) {}
 
   async reviewFocusSessionItem(
     sessionId: string,
@@ -72,6 +77,8 @@ export class ReviewFocusSessionItemService {
         include: focusSessionWithItemsInclude,
       });
     });
+
+    this.cache.delete(CacheKeys.dashboard(userId));
 
     return toFocusSessionResponse(updatedSession);
   }

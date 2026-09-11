@@ -15,6 +15,7 @@ import { SkipFocusSessionItemService } from './services/skip-focus-session-item.
 import { FinishFocusSessionService } from './services/finish-focus-session.service';
 import { FetchFocusSessionsHistoryService } from './services/fetch-focus-sessions-history.service';
 import { AuthModule } from '@infrastructure/auth/auth.module';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 
 @Module({
   controllers: [
@@ -26,7 +27,7 @@ import { AuthModule } from '@infrastructure/auth/auth.module';
     SkipFocusSessionItemController,
     FinishFocusSessionController,
   ],
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, RedisModule],
   providers: [
     CreateFocusSessionService,
     GetFocusSessionService,
