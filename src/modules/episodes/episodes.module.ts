@@ -11,6 +11,7 @@ import { UpdateEpisodeService } from './services/update-episode.service';
 import { DeleteEpisodeByIdController } from './controllers/delete-episode-by-id.controller';
 import { DeleteEpisodeByIdService } from './services/delete-episode-by-id.service';
 import { AuthModule } from '@infrastructure/auth/auth.module';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 
 @Module({
   controllers: [
@@ -20,7 +21,7 @@ import { AuthModule } from '@infrastructure/auth/auth.module';
     UpdateEpisodeController,
     DeleteEpisodeByIdController,
   ],
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, RedisModule],
   providers: [
     CreateEpisodeService,
     FetchRecentEpisodesService,

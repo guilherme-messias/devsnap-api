@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CreateEpisodeDto } from '../schemas/request/create-episode.request.schema';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { CacheKeys } from '@infrastructure/cache/cache-leys';
 
 @Injectable()
 export class CreateEpisodeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private cache: CacheRepository) {}
 
   async createEpisode(data: CreateEpisodeDto, userId: string) {
     const { title, stackId, error, solution } = data;
@@ -26,6 +28,8 @@ export class CreateEpisodeService {
       },
       include: { stack: true, annotations: true },
     });
+
+    this.cache.delete(CacheKeys.dashboard(userId));
 
     return episode;
   }
