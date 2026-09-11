@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { CacheKeys } from '@infrastructure/cache/cache-leys';
 
 @Injectable()
 export class CreateEpisodeReviewService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheRepository,
+  ) {}
 
   async createEpisodeReview(
     episodeId: string,
@@ -28,6 +33,8 @@ export class CreateEpisodeReviewService {
         return { focusSessionNotFound: true as const };
       }
     }
+
+    this.cache.delete(CacheKeys.dashboard(userId));
 
     return this.prisma.episodeReview.create({
       data: {

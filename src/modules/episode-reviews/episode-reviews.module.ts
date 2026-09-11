@@ -9,6 +9,7 @@ import { FetchRecentEpisodeReviewsService } from './services/fetch-recent-episod
 import { DeleteLastEpisodeReviewController } from './controllers/delete-last-episode-review.controller';
 import { DeleteLastEpisodeReviewService } from './services/delete-last-episode-review.service';
 import { AuthModule } from '@infrastructure/auth/auth.module';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 
 @Module({
   controllers: [
@@ -17,7 +18,7 @@ import { AuthModule } from '@infrastructure/auth/auth.module';
     FetchRecentEpisodeReviewsController,
     DeleteLastEpisodeReviewController,
   ],
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, RedisModule],
   providers: [
     CreateEpisodeReviewService,
     FetchEpisodeReviewByIdService,
