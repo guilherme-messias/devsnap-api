@@ -11,6 +11,7 @@ import { FetchRecentStacksService } from './services/fetch-recent-stacks.service
 import { UpdateStackController } from './controllers/update-stack.controller';
 import { UpdateStackService } from './services/update-stack.service';
 import { AuthModule } from '@infrastructure/auth/auth.module';
+import { RedisModule } from '@infrastructure/cache/redis/redis.module';
 
 @Module({
   controllers: [
@@ -20,7 +21,7 @@ import { AuthModule } from '@infrastructure/auth/auth.module';
     FetchRecentStacksController,
     UpdateStackController,
   ],
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, AuthModule, RedisModule],
   providers: [
     CreateStackService,
     DeleteStackByIdService,
