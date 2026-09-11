@@ -226,6 +226,42 @@ describe('Get Dashboard (E2E)', () => {
     expect(response.body.stacks[0].id).toBe(ownStack.id);
   });
 
+  test('should return new dashboard when the data is changed', async () => {
+    await prisma.stack.create({ data: { name: 'A', userId } });
+    const first = await request(app.getHttpServer())
+      .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(first.body.totals.stacks).toBe(1);
+
+    await request(app.getHttpServer())
+      .delete(`/stacks/${first.body.stacks[0].id}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(204);
+
+    const second = await request(app.getHttpServer())
+      .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(second.body.totals.stacks).toBe(1);
+  });
+
+  test('should keep serving cached dashboard when data changes outside the API ', async () => {
+    await prisma.stack.create({ data: { name: 'A', userId } });
+    const first = await request(app.getHttpServer())
+      .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(first.body.totals.stacks).toBe(1);
+
+    await prisma.stack.create({ data: { name: 'B', userId } });
+    const second = await request(app.getHttpServer())
+      .get('/dashboard')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(second.body.totals.stacks).toBe(1);
+  });
+
   test('should return 401 when the authorization header is missing', async () => {
     const response = await request(app.getHttpServer())
       .get('/dashboard')
