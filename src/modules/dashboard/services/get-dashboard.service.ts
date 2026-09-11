@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { CacheKeys } from '@infrastructure/cache/cache-keys';
 
 const CACHE_TTL_IN_SECONDS = 60 * 5;
 const OVERDUE_DAYS = 7;
@@ -13,7 +14,7 @@ export class GetDashboardService {
   ) {}
 
   async getDashboard(userId: string) {
-    const cacheKey = `dashboard:${userId}`;
+    const cacheKey = CacheKeys.dashboard(userId);
 
     const cached = await this.cache.get(cacheKey);
     if (cached) {
