@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CreateStackDto } from '../schemas/request/create-stack.request.schema';
-import { CacheKeys } from '@infrastructure/cache/cache-leys';
+import { CacheKeys } from '@infrastructure/cache/cache-keys';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class CreateStackService {
       },
     });
 
-    this.cache.delete(CacheKeys.dashboard(userId));
+    await this.cache.delete(CacheKeys.dashboard(userId));
 
     return stack;
   }

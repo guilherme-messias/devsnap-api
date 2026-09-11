@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
-import { CacheKeys } from '@infrastructure/cache/cache-leys';
+import { CacheKeys } from '@infrastructure/cache/cache-keys';
 
 @Injectable()
 export class CreateEpisodeReviewService {
@@ -34,14 +34,16 @@ export class CreateEpisodeReviewService {
       }
     }
 
-    this.cache.delete(CacheKeys.dashboard(userId));
-
-    return this.prisma.episodeReview.create({
+    const episodeReview = await this.prisma.episodeReview.create({
       data: {
         episodeId,
         result,
         focusSessionId,
       },
     });
+
+    await this.cache.delete(CacheKeys.dashboard(userId));
+
+    return episodeReview;
   }
 }

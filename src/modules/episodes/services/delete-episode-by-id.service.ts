@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
-import { CacheKeys } from '@infrastructure/cache/cache-leys';
+import { CacheKeys } from '@infrastructure/cache/cache-keys';
 
 @Injectable()
 export class DeleteEpisodeByIdService {
@@ -23,7 +23,7 @@ export class DeleteEpisodeByIdService {
       where: { id },
     });
 
-    this.cache.delete(CacheKeys.dashboard(userId));
+    await this.cache.delete(CacheKeys.dashboard(userId));
 
     return deletedEpisode;
   }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { UpdateEpisodeDto } from '../schemas/request/update-episode.request.schema';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
-import { CacheKeys } from '@infrastructure/cache/cache-leys';
+import { CacheKeys } from '@infrastructure/cache/cache-keys';
 
 @Injectable()
 export class UpdateEpisodeService {
@@ -31,7 +31,7 @@ export class UpdateEpisodeService {
       return null;
     }
 
-    this.cache.delete(CacheKeys.dashboard(userId));
+    await this.cache.delete(CacheKeys.dashboard(userId));
 
     return this.prisma.episode.findFirst({
       where: { id, stack: { userId } },
