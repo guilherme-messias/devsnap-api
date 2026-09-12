@@ -28,13 +28,18 @@ describe('Get User Profile Controller (E2E)', () => {
     configService = moduleRef.get(ConfigService);
 
     await app.init();
+  });
 
+  beforeEach(async () => {
     const { user, password } = await createTestUser(prisma);
     credentials = { email: user.email, password };
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
     await app.close();
   });
 
@@ -79,6 +84,59 @@ describe('Get User Profile Controller (E2E)', () => {
       message: 'User not found',
       error: 'Not Found',
     });
+  });
+
+  test('should return 404 when the user is not found', async () => {
+    const { accessToken } = await authenticateTestUser(
+      app,
+      credentials.email,
+      credentials.password,
+    );
+
+    const firstResponse = await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(firstResponse.body.email).toBe(credentials.email);
+
+    await request(app.getHttpServer())
+      .delete('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(204);
+
+    const secondResponse = await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(404);
+    expect(secondResponse.body).toEqual({
+      statusCode: 404,
+      message: 'User not found',
+      error: 'Not Found',
+    });
+  });
+
+  test('should keep serving cached dashboard when data changes outside the API ', async () => {
+    const { accessToken } = await authenticateTestUser(
+      app,
+      credentials.email,
+      credentials.password,
+    );
+
+    const firstResponse = await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(firstResponse.body.email).toBe(credentials.email);
+
+    await prisma.user.delete({
+      where: { id: firstResponse.body.id },
+    });
+
+    const secondResponse = await request(app.getHttpServer())
+      .get('/users/me')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(secondResponse.body.email).toBe(credentials.email);
   });
 
   test('should return 401 when the authorization header is missing', async () => {
