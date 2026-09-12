@@ -33,6 +33,7 @@ export class DeleteUserProfileService {
     });
 
     await this.cache.delete(CacheKeys.dashboard(userId));
+    await this.cache.delete(CacheKeys.userProfile(userId));
 
     return deletedUser;
   }

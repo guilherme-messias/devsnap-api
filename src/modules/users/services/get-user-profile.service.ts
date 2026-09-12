@@ -4,7 +4,6 @@ import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { CacheKeys } from '@infrastructure/cache/cache-keys';
 
 const CACHE_TTL_IN_SECONDS = 60 * 5;
-const OVERDUE_DAYS = 7;
 
 @Injectable()
 export class GetUserProfileService {
