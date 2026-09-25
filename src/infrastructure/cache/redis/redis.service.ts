@@ -1,28 +1,22 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { createClient, RedisClientType } from 'redis';
+import { Injectable } from '@nestjs/common';
 import { CacheRepository } from '../cache-repository';
 import { ConfigService } from '@nestjs/config';
+import { Redis } from '@upstash/redis';
 
 @Injectable()
-export class RedisService
-  implements CacheRepository, OnModuleInit, OnModuleDestroy
-{
-  private readonly client: RedisClientType;
+export class RedisService implements CacheRepository {
+  private readonly client: Redis;
 
   constructor(configService: ConfigService) {
-    const url = configService.get<string>('REDIS_URL');
-    if (!url) {
-      throw new Error('REDIS_URL is not defined.');
-    }
-
-    this.client = createClient({ url });
-    this.client.on('error', (error) => console.error('Redis error', error));
+    this.client = new Redis({
+      url: configService.getOrThrow('UPSTASH_REDIS_REST_URL'),
+      token: configService.getOrThrow('UPSTASH_REDIS_REST_TOKEN'),
+    });
   }
+  
   async set(key: string, value: string, ttlInSeconds?: number): Promise<void> {
     if (ttlInSeconds) {
-      await this.client.set(key, value, {
-        expiration: { type: 'EX', value: ttlInSeconds },
-      });
+      await this.client.set(key, value, { ex: ttlInSeconds });
       return;
     }
     await this.client.set(key, value);
@@ -34,13 +28,5 @@ export class RedisService
 
   async delete(key: string): Promise<void> {
     await this.client.del(key);
-  }
-
-  async onModuleInit() {
-    await this.client.connect();
-  }
-
-  async onModuleDestroy() {
-    await this.client.quit();
   }
 }
