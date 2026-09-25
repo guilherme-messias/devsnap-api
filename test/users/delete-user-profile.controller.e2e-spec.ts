@@ -4,6 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { randomUUID } from 'node:crypto';
@@ -12,6 +14,7 @@ import request from 'supertest';
 describe('Delete User Profile Controller (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let jwt: JwtService;
   let configService: ConfigService;
   let credentials: { email: string; password: string };
@@ -19,16 +22,24 @@ describe('Delete User Profile Controller (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
     await app.init();
 
     const { user, password } = await createTestUser(prisma);
     credentials = { email: user.email, password };
+  });
+
+  beforeEach(() => {
+    cache.clear();
   });
 
   afterAll(async () => {

@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import request from 'supertest';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
@@ -10,6 +12,7 @@ import { authenticateTestUser } from '../helpers/authenticate-test-user';
 describe('Update Focus Session (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let stackId: string;
   let episodeIds: string[];
   let sessionId: string;
@@ -36,10 +39,14 @@ describe('Update Focus Session (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
 
     await app.init();
 
@@ -89,6 +96,10 @@ describe('Update Focus Session (E2E)', () => {
 
     const session = await createSession();
     sessionId = session.id;
+  });
+
+  beforeEach(() => {
+    cache.clear();
   });
 
   afterAll(async () => {

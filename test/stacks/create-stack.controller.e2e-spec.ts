@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
@@ -9,16 +11,21 @@ import { authenticateTestUser } from '../helpers/authenticate-test-user';
 describe('Create Stack (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let userId: string;
   let accessToken: string;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
 
     await app.init();
 
@@ -36,6 +43,10 @@ describe('Create Stack (E2E)', () => {
   afterEach(async () => {
     await prisma.episode.deleteMany();
     await prisma.stack.deleteMany();
+  });
+
+  beforeEach(() => {
+    cache.clear();
   });
 
   afterAll(async () => {

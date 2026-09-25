@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
@@ -10,6 +12,7 @@ import { createTestFocusSession } from '../helpers/create-test-focus-session';
 describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let stackId: string;
   let episodeId: string;
   let userId: string;
@@ -19,11 +22,15 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
 
     await app.init();
 
@@ -49,6 +56,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   });
 
   beforeEach(async () => {
+    cache.clear();
     const stack = await prisma.stack.create({
       data: { name: 'Node.js', userId },
     });

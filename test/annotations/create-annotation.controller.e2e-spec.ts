@@ -3,6 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { randomUUID } from 'crypto';
 import { Episode, Stack } from '@prisma/client';
 import { createTestUser } from '../helpers/create-test-user';
@@ -11,6 +13,7 @@ import { authenticateTestUser } from '../helpers/authenticate-test-user';
 describe('Create Annotation (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let episode: Episode;
   let stack: Stack;
   let accessToken: string;
@@ -18,10 +21,14 @@ describe('Create Annotation (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
 
     await app.init();
 
@@ -75,6 +82,10 @@ describe('Create Annotation (E2E)', () => {
       otherPassword,
     );
     otherAccessToken = otherAuthenticated.accessToken;
+  });
+
+  beforeEach(() => {
+    cache.clear();
   });
 
   afterAll(async () => {

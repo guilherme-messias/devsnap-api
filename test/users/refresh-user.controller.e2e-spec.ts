@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import request from 'supertest';
@@ -11,6 +13,7 @@ import { authenticateTestUser } from '../helpers/authenticate-test-user';
 describe('Refresh User (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let jwt: JwtService;
   let configService: ConfigService;
   let credentials: { email: string; password: string };
@@ -19,11 +22,15 @@ describe('Refresh User (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
 
@@ -32,6 +39,10 @@ describe('Refresh User (E2E)', () => {
     const { user, password } = await createTestUser(prisma);
     credentials = { email: user.email, password };
     userId = user.id;
+  });
+
+  beforeEach(() => {
+    cache.clear();
   });
 
   afterAll(async () => {

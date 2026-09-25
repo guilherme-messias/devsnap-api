@@ -3,6 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from '@app';
+import { CacheRepository } from '@infrastructure/cache/cache-repository';
+import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import request from 'supertest';
 import { randomUUID } from 'node:crypto';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
@@ -12,6 +14,7 @@ import { authenticateTestUser } from '../helpers/authenticate-test-user';
 describe('Get User Profile Controller (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cache: InMemoryCacheRepository;
   let jwt: JwtService;
   let configService: ConfigService;
   let credentials: { email: string; password: string };
@@ -19,11 +22,15 @@ describe('Get User Profile Controller (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(CacheRepository)
+      .useClass(InMemoryCacheRepository)
+      .compile();
 
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
+    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
 
@@ -31,6 +38,7 @@ describe('Get User Profile Controller (E2E)', () => {
   });
 
   beforeEach(async () => {
+    cache.clear();
     const { user, password } = await createTestUser(prisma);
     credentials = { email: user.email, password };
   });
