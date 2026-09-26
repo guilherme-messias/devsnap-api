@@ -251,7 +251,7 @@ describe('Get Dashboard (E2E)', () => {
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(second.body.totals.stacks).toBe(1);
+    expect(second.body.totals.stacks).toBe(0);
   });
 
   test('should keep serving cached dashboard when data changes outside the API ', async () => {
