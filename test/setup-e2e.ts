@@ -8,11 +8,11 @@ import { execSync } from 'node:child_process';
 let prisma: PrismaClient;
 
 function generateUniqueDatabaseURL(schemaId: string) {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('Please provider a DATABASE_URL environment variable');
+  if (!process.env.TEST_DATABASE_URL) {
+    throw new Error('Please provide a TEST_DATABASE_URL environment variable');
   }
 
-  const url = new URL(process.env.DATABASE_URL);
+  const url = new URL(process.env.TEST_DATABASE_URL);
 
   url.searchParams.set('schema', schemaId);
 
@@ -24,13 +24,17 @@ const schemaId = randomUUID();
 beforeAll(async () => {
   const databaseURL = generateUniqueDatabaseURL(schemaId);
 
+  process.env.TEST_DATABASE_URL = databaseURL;
   process.env.DATABASE_URL = databaseURL;
 
   prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: databaseURL }),
   });
 
-  execSync('npm exec prisma migrate deploy');
+  execSync('npm exec prisma migrate deploy', {
+    env: { ...process.env, DATABASE_URL: databaseURL },
+    stdio: 'inherit',
+  });
 });
 
 afterAll(async () => {
