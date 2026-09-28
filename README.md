@@ -38,13 +38,13 @@ O fluxo principal do produto:
 | Framework | NestJS 11 (Express) |
 | Linguagem | TypeScript |
 | Banco | PostgreSQL 17 + Prisma 7 (`@prisma/adapter-pg`) |
-| Cache | Upstash Redis (REST) |
+| Cache | Redis local (TCP) ou Upstash (REST), via `CACHE_DRIVER` |
 | Auth | Passport JWT + RS256, senhas com argon2 |
 | Validação | Zod + `nestjs-zod` |
 | Docs | Swagger UI em `/api` |
 | Testes | Vitest (unit + e2e com Supertest) |
 
-> **Nota:** o `docker-compose` sobe um Redis local, mas a aplicação usa **Upstash Redis** via `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+> **Nota:** com `CACHE_DRIVER=redis`, a API usa o Redis do `docker-compose` (`REDIS_URL`). Com `CACHE_DRIVER=upstash`, usa Upstash REST (`UPSTASH_*`).
 
 ## Arquitetura
 
@@ -66,7 +66,7 @@ Cada módulo de domínio costuma seguir o padrão: `controllers/` (um por ação
 - Node.js **24+**
 - npm
 - Docker e Docker Compose (Postgres local)
-- Conta [Upstash](https://upstash.com/) (ou equivalente) para Redis REST
+- Docker Compose sobe Postgres + Redis (cache local). Upstash só se for usar `CACHE_DRIVER=upstash`
 - Par de chaves RSA para JWT (privada + pública)
 
 ## Instalação
@@ -77,7 +77,7 @@ npm install
 
 # 2. Ambiente
 cp .env.example .env
-# Edite .env com DATABASE_URL, chaves JWT e credenciais Upstash
+# Edite .env com DATABASE_URL, chaves JWT e cache (CACHE_DRIVER=redis no local)
 
 # 3. Infra local (Postgres na porta 5434 + Redis)
 npm run start:infra
@@ -127,8 +127,10 @@ Veja `.env.example`. Variáveis usadas pela aplicação:
 | `TEST_DATABASE_URL` | para e2e | Banco/schema usado nos testes e2e |
 | `JWT_PRIVATE_KEY` | sim | Chave privada RSA em base64 |
 | `JWT_PUBLIC_KEY` | sim | Chave pública RSA em base64 |
-| `UPSTASH_REDIS_REST_URL` | sim | URL REST do Upstash |
-| `UPSTASH_REDIS_REST_TOKEN` | sim | Token REST do Upstash |
+| `CACHE_DRIVER` | sim | `redis` (local/TCP) ou `upstash` (REST) |
+| `REDIS_URL` | se `CACHE_DRIVER=redis` | URL TCP do Redis (ex.: `redis://localhost:6379`) |
+| `UPSTASH_REDIS_REST_URL` | se `CACHE_DRIVER=upstash` | URL REST do Upstash |
+| `UPSTASH_REDIS_REST_TOKEN` | se `CACHE_DRIVER=upstash` | Token REST do Upstash |
 | `PORT` | não | Porta HTTP (padrão `3000`) |
 | `JWT_EXPIRATION` | não | Presente no exemplo/CI; TTL de access token no código é **15m** |
 
