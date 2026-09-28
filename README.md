@@ -1,98 +1,228 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# DevSnap API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST do **DevSnap** — aplicativo de aprendizado para desenvolvedores baseado em stacks de episódios (erro → solução), revisões, anotações e sessões de foco.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Construída com NestJS 11, Prisma 7 (PostgreSQL), autenticação JWT (RS256) e cache via Upstash Redis.
 
-## Description
+## Sumário
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Visão geral](#visão-geral)
+- [Stack](#stack)
+- [Arquitetura](#arquitetura)
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação](#instalação)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Scripts](#scripts)
+- [Autenticação](#autenticação)
+- [Documentação da API (Swagger)](#documentação-da-api-swagger)
+- [Domínio e recursos](#domínio-e-recursos)
+- [Testes](#testes)
+- [CI](#ci)
+- [Docker](#docker)
 
-## Project setup
+## Visão geral
 
-```bash
-$ npm install
+O fluxo principal do produto:
+
+1. O usuário cria **stacks** (coleções por tecnologia/tema).
+2. Em cada stack, cadastra **episódios** com `title`, `error` e `solution`.
+3. Pode adicionar **anotações** e registrar **revisões** de episódios.
+4. Inicia **sessões de foco** que embaralham episódios da stack (revisar / pular / finalizar).
+5. Consulta o **dashboard** com progresso (pendentes, revisados, atrasados após 7 dias).
+
+## Stack
+
+| Camada | Tecnologia |
+|--------|------------|
+| Runtime | Node.js 24 |
+| Framework | NestJS 11 (Express) |
+| Linguagem | TypeScript |
+| Banco | PostgreSQL 17 + Prisma 7 (`@prisma/adapter-pg`) |
+| Cache | Upstash Redis (REST) |
+| Auth | Passport JWT + RS256, senhas com argon2 |
+| Validação | Zod + `nestjs-zod` |
+| Docs | Swagger UI em `/api` |
+| Testes | Vitest (unit + e2e com Supertest) |
+
+> **Nota:** o `docker-compose` sobe um Redis local, mas a aplicação usa **Upstash Redis** via `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+
+## Arquitetura
+
+```
+src/
+├── modules/           # Domínio (users, stacks, episodes, annotations,
+│                      # episode-reviews, focus-sessions, dashboard)
+├── infrastructure/    # Prisma, auth/JWT, cache Redis
+├── shared/            # pipes, schemas HTTP compartilhados
+└── main.ts            # bootstrap + Swagger
 ```
 
-## Compile and run the project
+Aliases TypeScript: `@modules/*`, `@infrastructure/*`, `@shared/*`, `@http/*`, `@app`.
+
+Cada módulo de domínio costuma seguir o padrão: `controllers/` (um por ação), `services/`, `schemas/{request,response}/` e `*.module.ts`.
+
+## Pré-requisitos
+
+- Node.js **24+**
+- npm
+- Docker e Docker Compose (Postgres local)
+- Conta [Upstash](https://upstash.com/) (ou equivalente) para Redis REST
+- Par de chaves RSA para JWT (privada + pública)
+
+## Instalação
 
 ```bash
-# development
-$ npm run start
+# 1. Dependências
+npm install
 
-# watch mode
-$ npm run start:dev
+# 2. Ambiente
+cp .env.example .env
+# Edite .env com DATABASE_URL, chaves JWT e credenciais Upstash
 
-# production mode
-$ npm run start:prod
+# 3. Infra local (Postgres na porta 5434 + Redis)
+npm run start:infra
+
+# 4. Banco
+npx prisma migrate deploy
+npx prisma generate
+
+# 5. API em watch mode
+npm run start:dev
 ```
 
-## Run tests
+Por padrão a API sobe em `http://localhost:3000`.
+
+Exemplo de `DATABASE_URL` apontando para o Compose:
+
+```env
+DATABASE_URL="postgresql://devsnap_user:devsnap_password@localhost:5434/devsnap_db"
+```
+
+### Gerar chaves JWT (RS256)
+
+As variáveis `JWT_PRIVATE_KEY` e `JWT_PUBLIC_KEY` devem ser o conteúdo PEM **codificado em base64**:
 
 ```bash
-# unit tests
-$ npm run test
+openssl genrsa -out private.pem 2048
+openssl rsa -in private.pem -pubout -out public.pem
 
-# e2e tests
-$ npm run test:e2e
+# Linux
+base64 -w 0 private.pem
+base64 -w 0 public.pem
 
-# test coverage
-$ npm run test:cov
+# macOS
+base64 -i private.pem
+base64 -i public.pem
 ```
 
-## Deployment
+Cole os valores resultantes em `.env` (sem quebras de linha).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Variáveis de ambiente
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Veja `.env.example`. Variáveis usadas pela aplicação:
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `DATABASE_URL` | sim | Connection string do PostgreSQL |
+| `TEST_DATABASE_URL` | para e2e | Banco/schema usado nos testes e2e |
+| `JWT_PRIVATE_KEY` | sim | Chave privada RSA em base64 |
+| `JWT_PUBLIC_KEY` | sim | Chave pública RSA em base64 |
+| `UPSTASH_REDIS_REST_URL` | sim | URL REST do Upstash |
+| `UPSTASH_REDIS_REST_TOKEN` | sim | Token REST do Upstash |
+| `PORT` | não | Porta HTTP (padrão `3000`) |
+| `JWT_EXPIRATION` | não | Presente no exemplo/CI; TTL de access token no código é **15m** |
+
+## Scripts
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run start:infra` | Sobe Postgres + Redis via Docker Compose |
+| `npm run start:dev` | API em modo desenvolvimento (watch) |
+| `npm run start:debug` | Mesmo com debugger |
+| `npm run start:prod` | Roda `dist/main` (após build) |
+| `npm run build` | Compila o projeto |
+| `npm run lint` | ESLint com `--fix` |
+| `npm run format` | Checa Prettier |
+| `npm run prettier` | Formata com Prettier |
+| `npm run test` | Testes unitários |
+| `npm run test:watch` | Unitários em watch |
+| `npm run test:cov` | Coverage |
+| `npm run test:e2e` | Testes end-to-end |
+
+## Autenticação
+
+Fluxo:
+
+1. **Register** `POST /auth/register` — cria usuário com senha hasheada (argon2).
+2. **Login** `POST /auth/login` — retorna access token (15m) + refresh token (7d).
+3. Rotas protegidas enviam `Authorization: Bearer <access_token>`.
+4. **Refresh** `POST /auth/refresh` — usa o refresh token; o hash do refresh fica persistido no usuário.
+5. **Logout** `POST /auth/logout` — invalida o refresh armazenado.
+
+Rotas públicas: `POST /auth/register`, `POST /auth/login` e `GET /`.
+
+Demais rotas de domínio exigem JWT de acesso (`typ: access`). Refresh/logout usam strategy `jwt-refresh` (`typ: refresh`).
+
+## Documentação da API (Swagger)
+
+Com a API rodando:
+
+```
+http://localhost:3000/api
+```
+
+O OpenAPI é gerado a partir dos controllers Nest + schemas Zod (`cleanupOpenApiDoc`).
+
+Use o Swagger como fonte de verdade dos payloads, query params e respostas. Este README cobre setup e funcionamento — não duplica o contrato HTTP endpoint a endpoint.
+
+## Domínio e recursos
+
+| Recurso | Prefixo | Papel |
+|---------|---------|-------|
+| Auth / Users | `/auth/*`, `/users/me` | Conta e perfil |
+| Dashboard | `/dashboard` | Métricas de progresso |
+| Stacks | `/stacks` | Coleções do usuário |
+| Episodes | `/episodes` | Cards erro/solução |
+| Annotations | `/episodes/:episodeId/annotations` | Notas por episódio |
+| Reviews | `/episodes/:episodeId/reviews` | Histórico de revisão |
+| Focus sessions | `/focus-sessions` | Prática cronometrada por stack |
+
+Modelo de dados (Prisma): `User` → `Stack` → `Episode` → `Annotation` / `EpisodeReview`; `FocusSession` + `FocusSessionItem` ligados à stack/episódios.
+
+## Testes
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Unitários
+npm run test
+
+# E2E (requer TEST_DATABASE_URL e chaves JWT no ambiente)
+npm run test:e2e
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Os e2e criam um schema Postgres isolado por execução (`test/setup-e2e.ts`), aplicam migrations e limpam ao final. Specs ficam em `test/<módulo>/*.e2e-spec.ts`.
 
-## Resources
+## CI
 
-Check out a few resources that may come in handy when working with NestJS:
+Workflow em `.github/workflows/ci.yml` (push/PR em `main`), Node 24:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+1. `format`
+2. `lint` (com `prisma generate`)
+3. `test`
+4. `test-e2e` (serviço Postgres 17)
+5. `build`
 
-## Support
+## Docker
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Infra local** (`docker-compose.yml`):
 
-## Stay in touch
+- `devsnap-db` — Postgres 17 em `localhost:5434`
+- `devsnap-redis` — Redis Alpine em `localhost:6379` (não usado pelo código da API hoje)
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Imagem da API** (`Dockerfile`):
 
-## License
+```bash
+docker build -t devsnap-api .
+docker run --env-file .env -p 3000:3000 devsnap-api
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+A imagem usa Node 24 Alpine, gera o client Prisma, faz build e executa `npm run start:prod` na porta 3000. Postgres e Upstash devem estar acessíveis a partir do container.
