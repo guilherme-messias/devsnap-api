@@ -2,7 +2,7 @@
 
 API REST do **DevSnap** — aplicativo de aprendizado para desenvolvedores baseado em stacks de episódios (erro → solução), revisões, anotações e sessões de foco.
 
-Construída com NestJS 11, Prisma 7 (PostgreSQL), autenticação JWT (RS256) e cache via Upstash Redis.
+Construída com NestJS 11, Prisma 7 (PostgreSQL), autenticação JWT (RS256) e cache Redis (`CACHE_DRIVER`: TCP local ou Upstash REST).
 
 ## Sumário
 
@@ -38,13 +38,11 @@ O fluxo principal do produto:
 | Framework | NestJS 11 (Express) |
 | Linguagem | TypeScript |
 | Banco | PostgreSQL 17 + Prisma 7 (`@prisma/adapter-pg`) |
-| Cache | Redis local (TCP) ou Upstash (REST), via `CACHE_DRIVER` |
+| Cache | Redis via `CacheRepository` — driver `redis` (TCP) ou `upstash` (REST) |
 | Auth | Passport JWT + RS256, senhas com argon2 |
 | Validação | Zod + `nestjs-zod` |
 | Docs | Swagger UI em `/api` |
 | Testes | Vitest (unit + e2e com Supertest) |
-
-> **Nota:** com `CACHE_DRIVER=redis`, a API usa o Redis do `docker-compose` (`REDIS_URL`). Com `CACHE_DRIVER=upstash`, usa Upstash REST (`UPSTASH_*`).
 
 ## Arquitetura
 
@@ -52,7 +50,7 @@ O fluxo principal do produto:
 src/
 ├── modules/           # Domínio (users, stacks, episodes, annotations,
 │                      # episode-reviews, focus-sessions, dashboard)
-├── infrastructure/    # Prisma, auth/JWT, cache Redis
+├── infrastructure/    # Prisma, auth/JWT, cache (Redis)
 ├── shared/            # pipes, schemas HTTP compartilhados
 └── main.ts            # bootstrap + Swagger
 ```
@@ -61,13 +59,20 @@ Aliases TypeScript: `@modules/*`, `@infrastructure/*`, `@shared/*`, `@http/*`, `
 
 Cada módulo de domínio costuma seguir o padrão: `controllers/` (um por ação), `services/`, `schemas/{request,response}/` e `*.module.ts`.
 
+O cache é injetado pela abstração `CacheRepository`. O `RedisModule` escolhe a implementação com `CACHE_DRIVER`:
+
+- `redis` — Redis TCP (`REDIS_URL`), tipicamente o container do Compose
+- `upstash` — Upstash REST (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`)
+
+Nos testes e2e o provider é sobrescrito por `InMemoryCacheRepository`.
+
 ## Pré-requisitos
 
 - Node.js **24+**
 - npm
-- Docker e Docker Compose (Postgres local)
-- Docker Compose sobe Postgres + Redis (cache local). Upstash só se for usar `CACHE_DRIVER=upstash`
+- Docker e Docker Compose (Postgres + Redis local)
 - Par de chaves RSA para JWT (privada + pública)
+- Conta [Upstash](https://upstash.com/) apenas em produção (ou quando `CACHE_DRIVER=upstash`)
 
 ## Instalação
 
@@ -77,9 +82,9 @@ npm install
 
 # 2. Ambiente
 cp .env.example .env
-# Edite .env com DATABASE_URL, chaves JWT e cache (CACHE_DRIVER=redis no local)
+# Edite .env: DATABASE_URL, JWT e CACHE_DRIVER=redis + REDIS_URL (local)
 
-# 3. Infra local (Postgres na porta 5434 + Redis)
+# 3. Infra local (Postgres :5434 + Redis :6379)
 npm run start:infra
 
 # 4. Banco
@@ -96,6 +101,8 @@ Exemplo de `DATABASE_URL` apontando para o Compose:
 
 ```env
 DATABASE_URL="postgresql://devsnap_user:devsnap_password@localhost:5434/devsnap_db"
+CACHE_DRIVER=redis
+REDIS_URL=redis://localhost:6379
 ```
 
 ### Gerar chaves JWT (RS256)
@@ -127,12 +134,14 @@ Veja `.env.example`. Variáveis usadas pela aplicação:
 | `TEST_DATABASE_URL` | para e2e | Banco/schema usado nos testes e2e |
 | `JWT_PRIVATE_KEY` | sim | Chave privada RSA em base64 |
 | `JWT_PUBLIC_KEY` | sim | Chave pública RSA em base64 |
-| `CACHE_DRIVER` | sim | `redis` (local/TCP) ou `upstash` (REST) |
+| `CACHE_DRIVER` | sim* | `redis` ou `upstash` (*default no código: `upstash`) |
 | `REDIS_URL` | se `CACHE_DRIVER=redis` | URL TCP do Redis (ex.: `redis://localhost:6379`) |
 | `UPSTASH_REDIS_REST_URL` | se `CACHE_DRIVER=upstash` | URL REST do Upstash |
 | `UPSTASH_REDIS_REST_TOKEN` | se `CACHE_DRIVER=upstash` | Token REST do Upstash |
 | `PORT` | não | Porta HTTP (padrão `3000`) |
 | `JWT_EXPIRATION` | não | Presente no exemplo/CI; TTL de access token no código é **15m** |
+
+**Local:** `CACHE_DRIVER=redis` + `REDIS_URL`. **Produção (ex.: Render):** `CACHE_DRIVER=upstash` + `UPSTASH_*` (sem `REDIS_URL`).
 
 ## Scripts
 
@@ -201,7 +210,7 @@ npm run test
 npm run test:e2e
 ```
 
-Os e2e criam um schema Postgres isolado por execução (`test/setup-e2e.ts`), aplicam migrations e limpam ao final. Specs ficam em `test/<módulo>/*.e2e-spec.ts`.
+Os e2e criam um schema Postgres isolado por execução (`test/setup-e2e.ts`), aplicam migrations e limpam ao final. Specs ficam em `test/<módulo>/*.e2e-spec.ts` e usam cache in-memory (não dependem de Redis/Upstash).
 
 ## CI
 
@@ -218,7 +227,7 @@ Workflow em `.github/workflows/ci.yml` (push/PR em `main`), Node 24:
 **Infra local** (`docker-compose.yml`):
 
 - `devsnap-db` — Postgres 17 em `localhost:5434`
-- `devsnap-redis` — Redis Alpine em `localhost:6379` (não usado pelo código da API hoje)
+- `devsnap-redis` — Redis Alpine em `localhost:6379` (usado com `CACHE_DRIVER=redis`)
 
 **Imagem da API** (`Dockerfile`):
 
@@ -227,4 +236,4 @@ docker build -t devsnap-api .
 docker run --env-file .env -p 3000:3000 devsnap-api
 ```
 
-A imagem usa Node 24 Alpine, gera o client Prisma, faz build e executa `npm run start:prod` na porta 3000. Postgres e Upstash devem estar acessíveis a partir do container.
+A imagem usa Node 24 Alpine, gera o client Prisma, faz build e executa `npm run start:prod` na porta 3000. Postgres e o backend de cache (`REDIS_URL` ou Upstash, conforme `CACHE_DRIVER`) devem estar acessíveis a partir do container.
