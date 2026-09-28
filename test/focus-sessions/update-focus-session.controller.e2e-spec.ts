@@ -8,6 +8,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Update Focus Session (E2E)', () => {
   let app: INestApplication;
@@ -46,7 +48,7 @@ describe('Update Focus Session (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -112,17 +114,17 @@ describe('Update Focus Session (E2E)', () => {
   });
 
   test('should update currentIndex when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${sessionId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 1 })
       .expect(200);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       id: sessionId,
       stackId,
       status: 'in_progress',
-      startedAt: expect.any(String),
+      startedAt: expect.any(String) as string,
       currentIndex: 1,
       items: [
         {
@@ -140,44 +142,44 @@ describe('Update Focus Session (E2E)', () => {
   });
 
   test('should return 400 when currentIndex is out of bounds', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${sessionId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 3 })
       .expect(400);
 
-    expect(response.body.message).toEqual('Invalid currentIndex');
+    expect(bodyOf(response).message).toEqual('Invalid currentIndex');
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${sessionId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 404 when focus session does not exist', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${randomUUID()}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ currentIndex: 0 })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session not found');
+    expect(bodyOf(response).message).toEqual('Focus session not found');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
     const session = await createSession();
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${session.id}`)
       .send({ currentIndex: 1 })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const sessionOnDatabase = await prisma.focusSession.findUnique({
       where: { id: session.id },
@@ -188,13 +190,13 @@ describe('Update Focus Session (E2E)', () => {
   test('should return 404 when the focus session belongs to another user', async () => {
     const session = await createSession();
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/focus-sessions/${session.id}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({ currentIndex: 1 })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session not found');
+    expect(bodyOf(response).message).toEqual('Focus session not found');
 
     const sessionOnDatabase = await prisma.focusSession.findUnique({
       where: { id: session.id },

@@ -16,7 +16,7 @@ export class AuthService {
     const payload = { sub: userId, email };
     const keyOptionsAccessToken: JwtSignOptions = {
       privateKey: Buffer.from(
-        this.configService.get('JWT_PRIVATE_KEY'),
+        this.configService.getOrThrow<string>('JWT_PRIVATE_KEY'),
         'base64',
       ).toString('utf-8'),
       algorithm: 'RS256',
@@ -24,7 +24,7 @@ export class AuthService {
     };
     const keyOptionsRefreshToken: JwtSignOptions = {
       privateKey: Buffer.from(
-        this.configService.get('JWT_PRIVATE_KEY'),
+        this.configService.getOrThrow<string>('JWT_PRIVATE_KEY'),
         'base64',
       ).toString('utf-8'),
       algorithm: 'RS256',

@@ -6,6 +6,8 @@ import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memo
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import request from 'supertest';
 import { TEST_USER_PASSWORD } from '../helpers/create-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create User (E2E)', () => {
   let app: INestApplication;
@@ -23,7 +25,7 @@ describe('Create User (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
   });
@@ -38,7 +40,7 @@ describe('Create User (E2E)', () => {
   });
 
   test('should create a user when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/register')
       .send({
         name: 'Test User',
@@ -57,18 +59,18 @@ describe('Create User (E2E)', () => {
 
     expect(userOnDatabase).toBeTruthy();
     expect(userOnDatabase?.hashedRefreshToken).toBeNull();
-    expect(response.body).toMatchObject({
+    expect(bodyOf(response)).toMatchObject({
       id: userOnDatabase?.id,
       name: 'Test User',
       email: 'test@example.com',
-      createdAt: expect.any(String),
+      createdAt: expect.any(String) as string,
     });
-    expect(response.body).not.toHaveProperty('hashedRefreshToken');
-    expect(response.body).not.toHaveProperty('passwordHash');
+    expect(bodyOf(response)).not.toHaveProperty('hashedRefreshToken');
+    expect(bodyOf(response)).not.toHaveProperty('passwordHash');
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/register')
       .send({
         name: 'Test User',
@@ -76,11 +78,11 @@ describe('Create User (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when name is empty', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/register')
       .send({
         name: '   ',
@@ -89,11 +91,11 @@ describe('Create User (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when password is weak', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/register')
       .send({
         name: 'Test User',
@@ -102,7 +104,7 @@ describe('Create User (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when user already exists', async () => {
@@ -112,17 +114,17 @@ describe('Create User (E2E)', () => {
       password: TEST_USER_PASSWORD,
     };
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .post('/auth/register')
       .send(payload)
       .expect(201);
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/register')
       .send(payload)
       .expect(400);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 400,
       message: 'User already exists',
       error: 'Bad Request',

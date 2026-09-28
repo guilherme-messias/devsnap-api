@@ -7,6 +7,8 @@ import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memo
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Delete Stack By Id (E2E)', () => {
   let app: INestApplication;
@@ -28,7 +30,7 @@ describe('Delete Stack By Id (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -69,7 +71,7 @@ describe('Delete Stack By Id (E2E)', () => {
   });
 
   test('should delete the stack by id', async () => {
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete(`/stacks/${stackId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
@@ -93,7 +95,7 @@ describe('Delete Stack By Id (E2E)', () => {
       },
     });
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete(`/stacks/${stack.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
@@ -112,13 +114,13 @@ describe('Delete Stack By Id (E2E)', () => {
   test('should return 404 for non-existing stack id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/stacks/${nonExistingId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Stack with ID ${nonExistingId} not found`,
     );
@@ -127,14 +129,14 @@ describe('Delete Stack By Id (E2E)', () => {
   test('should return 400 for invalid stack id', async () => {
     const invalidId = 'invalid-uuid';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/stacks/${invalidId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
@@ -142,11 +144,11 @@ describe('Delete Stack By Id (E2E)', () => {
       data: { name: 'Vue.js', userId },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/stacks/${stack.id}`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const stackOnDatabase = await prisma.stack.findUnique({
       where: { id: stack.id },
@@ -159,13 +161,13 @@ describe('Delete Stack By Id (E2E)', () => {
       data: { name: 'Svelte', userId },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/stacks/${stack.id}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Stack with ID ${stack.id} not found`,
     );

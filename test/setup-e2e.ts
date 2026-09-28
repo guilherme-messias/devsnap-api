@@ -21,7 +21,7 @@ function generateUniqueDatabaseURL(schemaId: string) {
 
 const schemaId = randomUUID();
 
-beforeAll(async () => {
+beforeAll(() => {
   const databaseURL = generateUniqueDatabaseURL(schemaId);
 
   process.env.TEST_DATABASE_URL = databaseURL;

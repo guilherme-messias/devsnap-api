@@ -13,13 +13,13 @@ import { PrismaModule } from '../prisma/prisma.module';
     JwtNestModule.registerAsync({
       inject: [ConfigService],
       global: true,
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         publicKey: Buffer.from(
-          configService.get('JWT_PUBLIC_KEY'),
+          configService.getOrThrow<string>('JWT_PUBLIC_KEY'),
           'base64',
         ).toString('utf-8'),
         privateKey: Buffer.from(
-          configService.get('JWT_PRIVATE_KEY'),
+          configService.getOrThrow<string>('JWT_PRIVATE_KEY'),
           'base64',
         ).toString('utf-8'),
         signOptions: { algorithm: 'RS256', expiresIn: '15m' },

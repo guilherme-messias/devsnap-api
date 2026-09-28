@@ -8,6 +8,8 @@ import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 
@@ -29,7 +31,7 @@ describe('Delete User Profile Controller (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
     await app.init();
@@ -53,7 +55,7 @@ describe('Delete User Profile Controller (E2E)', () => {
       credentials.email,
       credentials.password,
     );
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete('/users/me')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(response.status).toBe(204);
@@ -77,12 +79,12 @@ describe('Delete User Profile Controller (E2E)', () => {
       },
     );
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 404,
       message: 'User not found',
       error: 'Not Found',
@@ -90,19 +92,19 @@ describe('Delete User Profile Controller (E2E)', () => {
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete('/users/me')
       .expect(401);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 401 when the authorization header is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete('/users/me')
       .set('Authorization', 'Bearer invalid-token')
       .expect(401);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 });

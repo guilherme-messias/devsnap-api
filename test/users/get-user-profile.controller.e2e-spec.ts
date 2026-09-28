@@ -10,6 +10,8 @@ import { randomUUID } from 'node:crypto';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Get User Profile Controller (E2E)', () => {
   let app: INestApplication;
@@ -30,7 +32,7 @@ describe('Get User Profile Controller (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
 
@@ -58,15 +60,15 @@ describe('Get User Profile Controller (E2E)', () => {
       credentials.password,
     );
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`);
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('id');
-    expect(response.body).toHaveProperty('email');
-    expect(response.body).toHaveProperty('name');
-    expect(response.body).toHaveProperty('avatarUrl');
-    expect(response.body).toHaveProperty('role');
+    expect(bodyOf(response)).toHaveProperty('id');
+    expect(bodyOf(response)).toHaveProperty('email');
+    expect(bodyOf(response)).toHaveProperty('name');
+    expect(bodyOf(response)).toHaveProperty('avatarUrl');
+    expect(bodyOf(response)).toHaveProperty('role');
   });
 
   test('should return 404 when the user is not found', async () => {
@@ -82,12 +84,12 @@ describe('Get User Profile Controller (E2E)', () => {
       },
     );
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 404,
       message: 'User not found',
       error: 'Not Found',
@@ -101,22 +103,22 @@ describe('Get User Profile Controller (E2E)', () => {
       credentials.password,
     );
 
-    const firstResponse = await request(app.getHttpServer())
+    const firstResponse = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(firstResponse.body.email).toBe(credentials.email);
+    expect(bodyOf(firstResponse).email).toBe(credentials.email);
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
 
-    const secondResponse = await request(app.getHttpServer())
+    const secondResponse = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
-    expect(secondResponse.body).toEqual({
+    expect(bodyOf(secondResponse)).toEqual({
       statusCode: 404,
       message: 'User not found',
       error: 'Not Found',
@@ -130,37 +132,37 @@ describe('Get User Profile Controller (E2E)', () => {
       credentials.password,
     );
 
-    const firstResponse = await request(app.getHttpServer())
+    const firstResponse = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(firstResponse.body.email).toBe(credentials.email);
+    expect(bodyOf(firstResponse).email).toBe(credentials.email);
 
     await prisma.user.delete({
-      where: { id: firstResponse.body.id },
+      where: { id: bodyOf(firstResponse).id },
     });
 
-    const secondResponse = await request(app.getHttpServer())
+    const secondResponse = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(secondResponse.body.email).toBe(credentials.email);
+    expect(bodyOf(secondResponse).email).toBe(credentials.email);
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/users/me')
       .expect(401);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 401 when the authorization header is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/users/me')
       .set('Authorization', 'Bearer invalid-token')
       .expect(401);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 });

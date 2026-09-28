@@ -7,6 +7,8 @@ import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Update Episode (E2E)', () => {
   let app: INestApplication;
@@ -29,7 +31,7 @@ describe('Update Episode (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -87,7 +89,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -98,18 +100,18 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(200);
 
-    expect(response.body).toHaveProperty('episode');
-    expect(response.body.episode.title).toEqual('Updated Episode');
-    expect(response.body.episode.error).toEqual('Updated error');
-    expect(response.body.episode.solution).toEqual('Updated solution');
-    expect(response.body.episode.annotations).toEqual([
+    expect(bodyOf(response)).toHaveProperty('episode');
+    expect(bodyOf(response).episode.title).toEqual('Updated Episode');
+    expect(bodyOf(response).episode.error).toEqual('Updated error');
+    expect(bodyOf(response).episode.solution).toEqual('Updated solution');
+    expect(bodyOf(response).episode.annotations).toEqual([
       expect.objectContaining({
         text: 'Existing note',
         episodeId: episode.id,
       }),
     ]);
-    expect(response.body.episode.stackId).toEqual(targetStackId);
-    expect(response.body.episode.stack).toMatchObject({
+    expect(bodyOf(response).episode.stackId).toEqual(targetStackId);
+    expect(bodyOf(response).episode.stack).toMatchObject({
       id: targetStackId,
       name: 'TypeScript',
     });
@@ -136,7 +138,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -144,13 +146,13 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 404 when episode does not exist', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${nonExistingId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -161,8 +163,8 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Episode with ID ${nonExistingId} not found`,
     );
@@ -178,7 +180,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -197,7 +199,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .send({
         title: 'Updated Episode',
@@ -207,7 +209,7 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const episodeOnDatabase = await prisma.episode.findUnique({
       where: { id: episode.id },
@@ -225,7 +227,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({
@@ -236,8 +238,8 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Episode with ID ${episode.id} not found`,
     );
@@ -259,7 +261,7 @@ describe('Update Episode (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .put(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -270,8 +272,8 @@ describe('Update Episode (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty('message', 'Stack not found');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty('message', 'Stack not found');
 
     const episodeOnDatabase = await prisma.episode.findUnique({
       where: { id: episode.id },

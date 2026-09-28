@@ -7,6 +7,8 @@ import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memo
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Update Stack (E2E)', () => {
   let app: INestApplication;
@@ -28,7 +30,7 @@ describe('Update Stack (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -69,7 +71,7 @@ describe('Update Stack (E2E)', () => {
     });
     stackId = stack.id;
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${stackId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -77,8 +79,8 @@ describe('Update Stack (E2E)', () => {
       })
       .expect(200);
 
-    expect(response.body).toHaveProperty('stack');
-    expect(response.body.stack.name).toEqual('Updated Stack Name');
+    expect(bodyOf(response)).toHaveProperty('stack');
+    expect(bodyOf(response).stack.name).toEqual('Updated Stack Name');
   });
 
   test('should return 400 when payload is invalid', async () => {
@@ -87,7 +89,7 @@ describe('Update Stack (E2E)', () => {
     });
     stackId = stack.id;
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${stackId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -95,8 +97,8 @@ describe('Update Stack (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 404 when stack does not exist', async () => {
@@ -107,7 +109,7 @@ describe('Update Stack (E2E)', () => {
 
     const nonExistentStackId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${nonExistentStackId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -115,8 +117,8 @@ describe('Update Stack (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Stack with ID ${nonExistentStackId} not found`,
     );
@@ -128,7 +130,7 @@ describe('Update Stack (E2E)', () => {
     });
     stackId = stack.id;
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${stackId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -136,8 +138,8 @@ describe('Update Stack (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message', 'Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
@@ -146,14 +148,14 @@ describe('Update Stack (E2E)', () => {
     });
     stackId = stack.id;
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${stackId}`)
       .send({
         name: 'Updated Stack Name',
       })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const stackOnDatabase = await prisma.stack.findUnique({
       where: { id: stackId },
@@ -167,7 +169,7 @@ describe('Update Stack (E2E)', () => {
     });
     stackId = stack.id;
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/stacks/${stackId}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({
@@ -175,8 +177,8 @@ describe('Update Stack (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Stack with ID ${stackId} not found`,
     );

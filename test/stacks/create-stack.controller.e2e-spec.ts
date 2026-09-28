@@ -7,6 +7,8 @@ import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memo
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create Stack (E2E)', () => {
   let app: INestApplication;
@@ -25,7 +27,7 @@ describe('Create Stack (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -55,56 +57,56 @@ describe('Create Stack (E2E)', () => {
   });
 
   test('should create a stack when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/stacks')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: 'Node.js' })
       .expect(201);
 
-    expect(response.body).toMatchObject({
+    expect(bodyOf(response)).toMatchObject({
       name: 'Node.js',
       userId,
     });
-    expect(response.body.id).toEqual(expect.any(String));
+    expect(bodyOf(response).id).toEqual(expect.any(String) as string);
 
     const stackOnDatabase = await prisma.stack.findUnique({
-      where: { id: response.body.id },
+      where: { id: bodyOf(response).id },
     });
 
     expect(stackOnDatabase).toMatchObject({
-      id: response.body.id,
+      id: bodyOf(response).id,
       name: 'Node.js',
       userId,
     });
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/stacks')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ name: '' })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when payload is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/stacks')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/stacks')
       .send({ name: 'Node.js' })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const stacksOnDatabase = await prisma.stack.findMany();
     expect(stacksOnDatabase).toHaveLength(0);

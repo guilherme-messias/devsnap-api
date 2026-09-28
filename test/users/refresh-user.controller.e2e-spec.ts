@@ -9,6 +9,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import request from 'supertest';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Refresh User (E2E)', () => {
   let app: INestApplication;
@@ -30,7 +32,7 @@ describe('Refresh User (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
     jwt = moduleRef.get(JwtService);
     configService = moduleRef.get(ConfigService);
 
@@ -56,22 +58,22 @@ describe('Refresh User (E2E)', () => {
       credentials.email,
       credentials.password,
     );
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/refresh')
       .set('Authorization', `Bearer ${refreshToken}`)
       .expect(201);
-    expect(response.body).toHaveProperty('accessToken');
-    expect(response.body).toHaveProperty('refreshToken');
+    expect(bodyOf(response)).toHaveProperty('accessToken');
+    expect(bodyOf(response)).toHaveProperty('refreshToken');
   });
 
   test('should return 401 when refresh token is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/refresh')
       .set('Authorization', `Bearer invalid-token`)
       .expect(401);
 
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 401 when refresh token is expired', async () => {
@@ -87,12 +89,12 @@ describe('Refresh User (E2E)', () => {
       },
     );
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/refresh')
       .set('Authorization', `Bearer ${expiredRefreshToken}`)
       .expect(401);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 401,
       message: 'Unauthorized',
     });
@@ -110,12 +112,12 @@ describe('Refresh User (E2E)', () => {
       data: { hashedRefreshToken: null },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/refresh')
       .set('Authorization', `Bearer ${refreshToken}`)
       .expect(401);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 401,
       message: 'Refresh token invalid',
       error: 'Unauthorized',
@@ -123,10 +125,10 @@ describe('Refresh User (E2E)', () => {
   });
 
   test('should return 401 when authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/refresh')
       .expect(401);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 });

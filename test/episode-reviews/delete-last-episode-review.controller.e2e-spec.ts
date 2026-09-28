@@ -9,6 +9,8 @@ import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Delete Last Episode Review Controller (E2E)', () => {
   let app: INestApplication;
@@ -32,7 +34,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -99,7 +101,7 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   test('should return 204 if the last episode review is deleted', async () => {
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/reviews/latest`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
@@ -114,40 +116,44 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   test('should return 404 if the episode review is not found', async () => {
     await prisma.episodeReview.delete({ where: { id: episodeReviewId } });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/reviews/latest`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body.message).toBe('Episode review or episode not found');
+    expect(bodyOf(response).message).toBe(
+      'Episode review or episode not found',
+    );
   });
 
   test('should return 404 if the episode is not found', async () => {
     const invalidEpisodeId = randomUUID();
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${invalidEpisodeId}/reviews/latest`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body.message).toBe('Episode review or episode not found');
+    expect(bodyOf(response).message).toBe(
+      'Episode review or episode not found',
+    );
   });
 
   test('should return 400 if the episode id is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/invalid-id/reviews/latest`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body.message).toBe('Validation failed');
+    expect(bodyOf(response).message).toBe('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/reviews/latest`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const episodeReviewOnDatabase = await prisma.episodeReview.findUnique({
       where: { id: episodeReviewId },
@@ -156,12 +162,14 @@ describe('Delete Last Episode Review Controller (E2E)', () => {
   });
 
   test('should return 404 when the episode belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/reviews/latest`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
-    expect(response.body.message).toBe('Episode review or episode not found');
+    expect(bodyOf(response).message).toBe(
+      'Episode review or episode not found',
+    );
 
     const episodeReviewOnDatabase = await prisma.episodeReview.findUnique({
       where: { id: episodeReviewId },

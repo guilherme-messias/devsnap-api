@@ -2,9 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { CacheKeys } from '@infrastructure/cache/cache-keys';
+import { getDashboardResponseSchema } from '../schemas/response/get-dashboard.response.schema';
+import type { z } from 'zod';
 
 const CACHE_TTL_IN_SECONDS = 60 * 5;
 const OVERDUE_DAYS = 7;
+
+type Dashboard = z.infer<typeof getDashboardResponseSchema>;
 
 @Injectable()
 export class GetDashboardService {
@@ -13,12 +17,12 @@ export class GetDashboardService {
     private readonly cache: CacheRepository,
   ) {}
 
-  async getDashboard(userId: string) {
+  async getDashboard(userId: string): Promise<Dashboard> {
     const cacheKey = CacheKeys.dashboard(userId);
 
     const cached = await this.cache.get(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return getDashboardResponseSchema.parse(JSON.parse(cached) as unknown);
     }
 
     const dashboard = await this.buildDashboard(userId);

@@ -13,7 +13,7 @@ export class RedisService implements CacheRepository {
       token: configService.getOrThrow('UPSTASH_REDIS_REST_TOKEN'),
     });
   }
-  
+
   async set(key: string, value: string, ttlInSeconds?: number): Promise<void> {
     if (ttlInSeconds) {
       await this.client.set(key, value, { ex: ttlInSeconds });

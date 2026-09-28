@@ -16,7 +16,7 @@ export class RefreshTokenStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: Buffer.from(
-        configService.get('JWT_PUBLIC_KEY'),
+        configService.getOrThrow<string>('JWT_PUBLIC_KEY'),
         'base64',
       ).toString('utf-8'),
       algorithms: ['RS256'],

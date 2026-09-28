@@ -7,6 +7,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Delete Annotation By Id (E2E)', () => {
   let app: INestApplication;
@@ -29,7 +31,7 @@ describe('Delete Annotation By Id (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -96,21 +98,21 @@ describe('Delete Annotation By Id (E2E)', () => {
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the annotation belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Annotation or episode not found',
     );
@@ -122,7 +124,7 @@ describe('Delete Annotation By Id (E2E)', () => {
   });
 
   test('should delete the annotation by id', async () => {
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
@@ -135,13 +137,13 @@ describe('Delete Annotation By Id (E2E)', () => {
   test('should return 404 for non-existing annotation id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/annotations/${nonExistingId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Annotation or episode not found',
     );
@@ -149,13 +151,13 @@ describe('Delete Annotation By Id (E2E)', () => {
   test('should return 404 for non-existing episode id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${nonExistingId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Annotation or episode not found',
     );
@@ -163,23 +165,23 @@ describe('Delete Annotation By Id (E2E)', () => {
   test('should return 400 for invalid episode id', async () => {
     const invalidId = 'invalid-uuid';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${invalidId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message', 'Validation failed');
   });
   test('should return 400 for invalid annotation id', async () => {
     const invalidId = 'invalid-uuid';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episodeId}/annotations/${invalidId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message', 'Validation failed');
   });
 });

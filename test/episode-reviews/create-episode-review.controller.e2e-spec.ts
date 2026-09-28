@@ -9,6 +9,8 @@ import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create Episode Review (E2E)', () => {
   let app: INestApplication;
@@ -31,7 +33,7 @@ describe('Create Episode Review (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -95,7 +97,7 @@ describe('Create Episode Review (E2E)', () => {
   });
 
   test('should create an episode review when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -106,22 +108,22 @@ describe('Create Episode Review (E2E)', () => {
 
     const reviewOnDatabase = await prisma.episodeReview.findUnique({
       where: {
-        id: response.body.id,
+        id: bodyOf(response).id,
       },
     });
 
     expect(reviewOnDatabase).toBeTruthy();
-    expect(response.body).toEqual({
-      id: expect.any(String),
+    expect(bodyOf(response)).toEqual({
+      id: expect.any(String) as string,
       episodeId,
       result: 'Some result',
-      reviewAt: expect.any(String),
+      reviewAt: expect.any(String) as string,
       focusSessionId,
     });
   });
 
   test('should create an episode review when focusSessionId is omitted', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -129,17 +131,17 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(201);
 
-    expect(response.body).toEqual({
-      id: expect.any(String),
+    expect(bodyOf(response)).toEqual({
+      id: expect.any(String) as string,
       episodeId,
       result: 'Some result without focus session',
-      reviewAt: expect.any(String),
+      reviewAt: expect.any(String) as string,
       focusSessionId: null,
     });
   });
 
   test('should create an episode review when focusSessionId is null', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -148,17 +150,17 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(201);
 
-    expect(response.body).toEqual({
-      id: expect.any(String),
+    expect(bodyOf(response)).toEqual({
+      id: expect.any(String) as string,
       episodeId,
       result: 'Some result with null focus session',
-      reviewAt: expect.any(String),
+      reviewAt: expect.any(String) as string,
       focusSessionId: null,
     });
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -166,11 +168,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 400 when result is empty', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -179,11 +181,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 400 when result exceeds 500 characters', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -192,11 +194,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 400 when focusSessionId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -205,11 +207,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 400 when episodeId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/invalid-uuid/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -218,11 +220,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 404 when episode does not exist', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${randomUUID()}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -231,11 +233,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body.message).toEqual('Episode not found');
+    expect(bodyOf(response).message).toEqual('Episode not found');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .send({
         result: 'Some result',
@@ -243,11 +245,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the episode belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({
@@ -255,11 +257,11 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body.message).toEqual('Episode not found');
+    expect(bodyOf(response).message).toEqual('Episode not found');
   });
 
   test('should return 404 when the focus session belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -268,6 +270,6 @@ describe('Create Episode Review (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session not found');
+    expect(bodyOf(response).message).toEqual('Focus session not found');
   });
 });

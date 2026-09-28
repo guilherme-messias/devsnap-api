@@ -7,6 +7,8 @@ import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memo
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Delete Episode By Id (E2E)', () => {
   let app: INestApplication;
@@ -27,7 +29,7 @@ describe('Delete Episode By Id (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -80,7 +82,7 @@ describe('Delete Episode By Id (E2E)', () => {
       },
     });
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .delete(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
@@ -94,13 +96,13 @@ describe('Delete Episode By Id (E2E)', () => {
   test('should return 404 for non-existing episode id', async () => {
     const nonExistingId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${nonExistingId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Episode with ID ${nonExistingId} not found`,
     );
@@ -109,14 +111,14 @@ describe('Delete Episode By Id (E2E)', () => {
   test('should return 400 for invalid episode id', async () => {
     const invalidId = 'invalid-uuid';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${invalidId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
@@ -129,11 +131,11 @@ describe('Delete Episode By Id (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episode.id}`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const episodeOnDatabase = await prisma.episode.findUnique({
       where: { id: episode.id },
@@ -151,13 +153,13 @@ describe('Delete Episode By Id (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .delete(`/episodes/${episode.id}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Episode with ID ${episode.id} not found`,
     );

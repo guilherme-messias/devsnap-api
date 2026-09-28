@@ -8,6 +8,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Review Focus Session Item (E2E)', () => {
   let app: INestApplication;
@@ -29,7 +31,7 @@ describe('Review Focus Session Item (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -112,17 +114,17 @@ describe('Review Focus Session Item (E2E)', () => {
   });
 
   test('should review an item and advance currentIndex', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/review`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ result: 'remembered' })
       .expect(200);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       id: sessionId,
       stackId,
       status: 'in_progress',
-      startedAt: expect.any(String),
+      startedAt: expect.any(String) as string,
       currentIndex: 1,
       items: [
         {
@@ -152,33 +154,33 @@ describe('Review Focus Session Item (E2E)', () => {
   });
 
   test('should return 400 when result is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/review`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 404 when focus session does not exist', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${randomUUID()}/items/${episodeIds[0]}/review`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ result: 'remembered' })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session not found');
+    expect(bodyOf(response).message).toEqual('Focus session not found');
   });
 
   test('should return 404 when item does not belong to the session', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${randomUUID()}/review`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ result: 'remembered' })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session item not found');
+    expect(bodyOf(response).message).toEqual('Focus session item not found');
   });
 
   test('should return 400 when session is finished', async () => {
@@ -187,22 +189,24 @@ describe('Review Focus Session Item (E2E)', () => {
       data: { status: 'finished', finishedAt: new Date() },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/review`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ result: 'remembered' })
       .expect(400);
 
-    expect(response.body.message).toEqual('Focus session is not in progress');
+    expect(bodyOf(response).message).toEqual(
+      'Focus session is not in progress',
+    );
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/review`)
       .send({ result: 'remembered' })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const reviewsOnDatabase = await prisma.episodeReview.count();
     expect(reviewsOnDatabase).toBe(0);
@@ -216,13 +220,13 @@ describe('Review Focus Session Item (E2E)', () => {
   });
 
   test('should return 404 when the focus session belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/focus-sessions/${sessionId}/items/${episodeIds[0]}/review`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({ result: 'remembered' })
       .expect(404);
 
-    expect(response.body.message).toEqual('Focus session not found');
+    expect(bodyOf(response).message).toEqual('Focus session not found');
 
     const reviewsOnDatabase = await prisma.episodeReview.count();
     expect(reviewsOnDatabase).toBe(0);

@@ -7,6 +7,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Update Annotation (E2E)', () => {
   let app: INestApplication;
@@ -29,7 +31,7 @@ describe('Update Annotation (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -96,38 +98,38 @@ describe('Update Annotation (E2E)', () => {
   });
 
   test('should update an annotation when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Updated Annotation' })
       .expect(200);
 
-    expect(response.body.annotation.id).toBe(annotationId);
-    expect(response.body.annotation.episodeId).toBe(episodeId);
-    expect(response.body.annotation.text).toBe('Updated Annotation');
+    expect(bodyOf(response).annotation.id).toBe(annotationId);
+    expect(bodyOf(response).annotation.episodeId).toBe(episodeId);
+    expect(bodyOf(response).annotation.text).toBe('Updated Annotation');
   });
 
   test('should return 400 when payload is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 404 when episode does not exist', async () => {
     const nonExistingEpisodeId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${nonExistingEpisodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Updated Annotation' })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Annotation or episode not found`,
     );
@@ -136,61 +138,61 @@ describe('Update Annotation (E2E)', () => {
   test('should return 404 when annotation does not exist', async () => {
     const nonExistingAnnotationId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${nonExistingAnnotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Updated Annotation' })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Annotation or episode not found`,
     );
   });
 
   test('should return 400 when episodeId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${'invalid-uuid'}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Updated Annotation' })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when annotationId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${'invalid-uuid'}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Updated Annotation' })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when text is more than 1000 characters', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'a'.repeat(1001) })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when text is empty', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: '' })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .send({ text: 'Updated Annotation' })
       .expect(401);
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the annotation belongs to another user', async () => {
@@ -198,14 +200,14 @@ describe('Update Annotation (E2E)', () => {
       where: { id: annotationId },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .patch(`/episodes/${episodeId}/annotations/${annotationId}`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .send({ text: 'Annotation from another user' })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       `Annotation or episode not found`,
     );

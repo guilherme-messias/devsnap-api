@@ -9,6 +9,8 @@ import { randomUUID } from 'crypto';
 import { Episode, Stack } from '@prisma/client';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create Annotation (E2E)', () => {
   let app: INestApplication;
@@ -28,7 +30,7 @@ describe('Create Annotation (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -36,7 +38,7 @@ describe('Create Annotation (E2E)', () => {
 
     stack = await prisma.stack.create({
       data: {
-        id: randomUUID() as string,
+        id: randomUUID(),
         name: 'Stack 1',
         userId: user.id,
       },
@@ -44,7 +46,7 @@ describe('Create Annotation (E2E)', () => {
 
     episode = await prisma.episode.create({
       data: {
-        id: randomUUID() as string,
+        id: randomUUID(),
         title: 'Episode 1',
         error: 'Error 1',
         solution: 'Solution 1',
@@ -96,77 +98,77 @@ describe('Create Annotation (E2E)', () => {
     await app.close();
   });
   test('should create an annotation when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Annotation 1' })
       .expect(201);
-    expect(response.body).toEqual({
-      id: expect.any(String),
+    expect(bodyOf(response)).toEqual({
+      id: expect.any(String) as string,
       text: 'Annotation 1',
       episodeId: episode.id,
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
+      createdAt: expect.any(String) as string,
+      updatedAt: expect.any(String) as string,
     });
   });
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: '' })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
   test('should return 404 when episode is not found', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${randomUUID()}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Annotation 1' })
       .expect(404);
-    expect(response.body.message).toEqual('Episode not found');
+    expect(bodyOf(response).message).toEqual('Episode not found');
   });
   test('should return 400 when payload is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when episodeId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${'invalid-uuid'}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'Annotation 1' })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when text is more than 1000 characters', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ text: 'a'.repeat(1001) })
       .expect(400);
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .send({ text: 'Annotation 1' })
       .expect(401);
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the episode belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post(`/episodes/${episode.id}/annotations`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .send({ text: 'Annotation from another user' })
       .expect(404);
-    expect(response.body.message).toEqual('Episode not found');
+    expect(bodyOf(response).message).toEqual('Episode not found');
 
     const annotations = await prisma.annotation.findMany({
       where: { episodeId: episode.id, text: 'Annotation from another user' },

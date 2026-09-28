@@ -6,6 +6,8 @@ import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 import request from 'supertest';
 
 describe('Logout User Controller (E2E)', () => {
@@ -25,7 +27,7 @@ describe('Logout User Controller (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -49,7 +51,7 @@ describe('Logout User Controller (E2E)', () => {
       credentials.password,
     );
 
-    await request(app.getHttpServer())
+    await request(getAppServer(app))
       .post('/auth/logout')
       .set('Authorization', `Bearer ${refreshToken}`)
       .expect(204);
@@ -64,23 +66,23 @@ describe('Logout User Controller (E2E)', () => {
   });
 
   test('should return 401 when authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/logout')
       .expect(401);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 401,
       message: 'Unauthorized',
     });
   });
 
   test('should return 401 when authorization header is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/auth/logout')
       .set('Authorization', 'Bearer invalid-token')
       .expect(401);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 401,
       message: 'Unauthorized',
     });

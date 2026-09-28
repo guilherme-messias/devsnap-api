@@ -9,14 +9,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: Buffer.from(
-        configService.get('JWT_PUBLIC_KEY'),
+        configService.getOrThrow<string>('JWT_PUBLIC_KEY'),
         'base64',
       ).toString('utf-8'),
       algorithms: ['RS256'],
     });
   }
 
-  async validate(payload: { sub: string; email: string; typ: string }) {
+  validate(payload: { sub: string; email: string; typ: string }) {
     if (payload.typ !== 'access')
       throw new UnauthorizedException('Invalid token type');
     return { sub: payload.sub, email: payload.email };

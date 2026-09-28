@@ -8,6 +8,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Fetch Episode Review By Id Controller (E2E)', () => {
   let app: INestApplication;
@@ -31,7 +33,7 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -92,17 +94,17 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
   });
 
   test('should be able to fetch an episode review by id', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       episodeReview: {
         id: episodeReviewId,
         result: 'Review 1',
         episodeId: episodeId,
-        reviewAt: expect.any(String),
+        reviewAt: expect.any(String) as string,
         focusSessionId,
       },
     });
@@ -110,12 +112,12 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
   test('should return 404 for non-existing episode review id', async () => {
     const nonExistingEpisodeReviewId = '00000000-0000-0000-0000-000000000000';
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews/${nonExistingEpisodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       statusCode: 404,
       message: 'Episode review or episode not found',
       error: 'Not Found',
@@ -132,13 +134,13 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${anotherEpisode.id}/reviews/${episodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Episode review or episode not found',
     );
@@ -146,13 +148,13 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
   test('should return 404 for non-existing episode id', async () => {
     const nonExistingEpisodeId = '00000000-0000-0000-0000-000000000000';
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${nonExistingEpisodeId}/reviews/${episodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Episode review or episode not found',
     );
@@ -160,42 +162,42 @@ describe('Fetch Episode Review By Id Controller (E2E)', () => {
 
   test('should return 400 for invalid episode review id', async () => {
     const invalidEpisodeReviewId = 'invalid-uuid';
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews/${invalidEpisodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
     expect(response.status).toBe(400);
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message', 'Validation failed');
   });
 
   test('should return 400 for invalid episode id', async () => {
     const invalidEpisodeId = 'invalid-uuid';
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${invalidEpisodeId}/reviews/${episodeReviewId}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body).toHaveProperty('statusCode', 400);
-    expect(response.body).toHaveProperty('message', 'Validation failed');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 400);
+    expect(bodyOf(response)).toHaveProperty('message', 'Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the episode review belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews/${episodeReviewId}`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
-    expect(response.body).toHaveProperty(
+    expect(bodyOf(response)).toHaveProperty(
       'message',
       'Episode review or episode not found',
     );

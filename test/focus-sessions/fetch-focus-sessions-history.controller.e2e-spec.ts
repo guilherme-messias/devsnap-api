@@ -7,6 +7,8 @@ import request from 'supertest';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Fetch Focus Sessions History (E2E)', () => {
   let app: INestApplication;
@@ -31,7 +33,7 @@ describe('Fetch Focus Sessions History (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -154,17 +156,17 @@ describe('Fetch Focus Sessions History (E2E)', () => {
   });
 
   test('should return only finished focus sessions', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/focus-sessions/history')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.focusSessions).toHaveLength(1);
-    expect(response.body.focusSessions[0]).toEqual({
+    expect(bodyOf(response).focusSessions).toHaveLength(1);
+    expect(bodyOf(response).focusSessions[0]).toEqual({
       id: finishedSessionId,
       stackId,
       status: 'finished',
-      startedAt: expect.any(String),
+      startedAt: expect.any(String) as string,
       currentIndex: 1,
       items: [
         {
@@ -177,35 +179,35 @@ describe('Fetch Focus Sessions History (E2E)', () => {
   });
 
   test('should return 400 when page is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/focus-sessions/history')
       .query({ page: '0' })
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/focus-sessions/history')
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return only the focus sessions of the authenticated user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/focus-sessions/history')
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
-    expect(response.body.focusSessions).toHaveLength(1);
-    expect(response.body.focusSessions[0]).toEqual({
+    expect(bodyOf(response).focusSessions).toHaveLength(1);
+    expect(bodyOf(response).focusSessions[0]).toEqual({
       id: otherUserFinishedSessionId,
       stackId: otherUserStackId,
       status: 'finished',
-      startedAt: expect.any(String),
+      startedAt: expect.any(String) as string,
       currentIndex: 1,
       items: [
         {
@@ -217,7 +219,9 @@ describe('Fetch Focus Sessions History (E2E)', () => {
     });
 
     expect(
-      response.body.focusSessions.map((session: { id: string }) => session.id),
+      bodyOf(response).focusSessions.map(
+        (session: { id: string }) => session.id,
+      ),
     ).not.toContain(finishedSessionId);
   });
 });

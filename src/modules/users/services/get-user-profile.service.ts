@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { CacheKeys } from '@infrastructure/cache/cache-keys';
+import { userProfileResponseSchema } from '../schemas/response/get-user-profile.response.schema';
+import type { z } from 'zod';
 
 const CACHE_TTL_IN_SECONDS = 60 * 5;
+
+type UserProfile = z.infer<typeof userProfileResponseSchema>;
 
 @Injectable()
 export class GetUserProfileService {
@@ -12,15 +16,21 @@ export class GetUserProfileService {
     private readonly cache: CacheRepository,
   ) {}
 
-  async getUserProfile(userId: string) {
+  async getUserProfile(userId: string): Promise<UserProfile | null> {
     const cacheKey = CacheKeys.userProfile(userId);
     const cached = await this.cache.get(cacheKey);
     if (cached) {
-      return JSON.parse(cached);
+      return userProfileResponseSchema.parse(JSON.parse(cached) as unknown);
     }
 
     const user = await this.buildUserProfile(userId);
-    await this.cache.set(cacheKey, JSON.stringify(user), CACHE_TTL_IN_SECONDS);
+    if (user) {
+      await this.cache.set(
+        cacheKey,
+        JSON.stringify(user),
+        CACHE_TTL_IN_SECONDS,
+      );
+    }
     return user;
   }
 

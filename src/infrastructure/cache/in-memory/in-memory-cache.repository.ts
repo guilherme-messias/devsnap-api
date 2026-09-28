@@ -5,16 +5,18 @@ import { CacheRepository } from '../cache-repository';
 export class InMemoryCacheRepository implements CacheRepository {
   private readonly store = new Map<string, string>();
 
-  async set(key: string, value: string, _ttlInSeconds?: number): Promise<void> {
+  set(key: string, value: string, _ttlInSeconds?: number): Promise<void> {
     this.store.set(key, value);
+    return Promise.resolve();
   }
 
-  async get(key: string): Promise<string | null> {
-    return this.store.get(key) ?? null;
+  get(key: string): Promise<string | null> {
+    return Promise.resolve(this.store.get(key) ?? null);
   }
 
-  async delete(key: string): Promise<void> {
+  delete(key: string): Promise<void> {
     this.store.delete(key);
+    return Promise.resolve();
   }
 
   clear(): void {

@@ -7,6 +7,8 @@ import { CacheRepository } from '@infrastructure/cache/cache-repository';
 import { InMemoryCacheRepository } from '@infrastructure/cache/in-memory/in-memory-cache.repository';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create Episode (E2E)', () => {
   let app: INestApplication;
@@ -27,7 +29,7 @@ describe('Create Episode (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -71,7 +73,7 @@ describe('Create Episode (E2E)', () => {
   });
 
   test('should create an episode when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -84,12 +86,12 @@ describe('Create Episode (E2E)', () => {
 
     const userOnDatabase = await prisma.episode.findUnique({
       where: {
-        id: response.body.id,
+        id: bodyOf(response).id,
       },
     });
 
     expect(userOnDatabase).toBeTruthy();
-    expect(response.body).toMatchObject({
+    expect(bodyOf(response)).toMatchObject({
       stackId,
       stack: { id: stackId, name: 'Node.js' },
       annotations: [],
@@ -97,7 +99,7 @@ describe('Create Episode (E2E)', () => {
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -107,11 +109,11 @@ describe('Create Episode (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 400 when title is empty', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -122,11 +124,11 @@ describe('Create Episode (E2E)', () => {
       })
       .expect(400);
 
-    expect(response.body.message).toEqual('Validation failed');
+    expect(bodyOf(response).message).toEqual('Validation failed');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .send({
         title: 'Test Episode',
@@ -136,11 +138,11 @@ describe('Create Episode (E2E)', () => {
       })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the stack belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({
@@ -151,14 +153,14 @@ describe('Create Episode (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('statusCode', 404);
-    expect(response.body).toHaveProperty('message', 'Stack not found');
+    expect(bodyOf(response)).toHaveProperty('statusCode', 404);
+    expect(bodyOf(response)).toHaveProperty('message', 'Stack not found');
   });
 
   test('should return 404 when the stack does not exist', async () => {
     const nonExistingStackId = '00000000-0000-0000-0000-000000000000';
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/episodes')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
@@ -169,6 +171,6 @@ describe('Create Episode (E2E)', () => {
       })
       .expect(404);
 
-    expect(response.body).toHaveProperty('message', 'Stack not found');
+    expect(bodyOf(response)).toHaveProperty('message', 'Stack not found');
   });
 });

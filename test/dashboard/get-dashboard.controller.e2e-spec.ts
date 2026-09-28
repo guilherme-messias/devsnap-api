@@ -7,6 +7,8 @@ import request from 'supertest';
 import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Get Dashboard (E2E)', () => {
   let app: INestApplication;
@@ -25,7 +27,7 @@ describe('Get Dashboard (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
   });
@@ -57,12 +59,12 @@ describe('Get Dashboard (E2E)', () => {
   });
 
   test('should return empty dashboard when there is no data', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       totals: {
         stacks: 0,
         episodes: 0,
@@ -131,12 +133,12 @@ describe('Get Dashboard (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.totals).toEqual({
+    expect(bodyOf(response).totals).toEqual({
       stacks: 2,
       episodes: 4,
       pending: 3,
@@ -144,7 +146,7 @@ describe('Get Dashboard (E2E)', () => {
       overdue: 1,
     });
 
-    expect(response.body.stacks).toEqual(
+    expect(bodyOf(response).stacks).toEqual(
       expect.arrayContaining([
         {
           id: angular.id,
@@ -173,12 +175,12 @@ describe('Get Dashboard (E2E)', () => {
       data: { name: 'Empty', userId },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body).toEqual({
+    expect(bodyOf(response)).toEqual({
       totals: {
         stacks: 1,
         episodes: 0,
@@ -218,63 +220,63 @@ describe('Get Dashboard (E2E)', () => {
       },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.totals).toEqual({
+    expect(bodyOf(response).totals).toEqual({
       stacks: 1,
       episodes: 0,
       pending: 0,
       reviewed: 0,
       overdue: 0,
     });
-    expect(response.body.stacks).toHaveLength(1);
-    expect(response.body.stacks[0].id).toBe(ownStack.id);
+    expect(bodyOf(response).stacks).toHaveLength(1);
+    expect(bodyOf(response).stacks[0].id).toBe(ownStack.id);
   });
 
   test('should return new dashboard when the data is changed', async () => {
     await prisma.stack.create({ data: { name: 'A', userId } });
-    const first = await request(app.getHttpServer())
+    const first = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(first.body.totals.stacks).toBe(1);
+    expect(bodyOf(first).totals.stacks).toBe(1);
 
-    await request(app.getHttpServer())
-      .delete(`/stacks/${first.body.stacks[0].id}`)
+    await request(getAppServer(app))
+      .delete(`/stacks/${bodyOf(first).stacks[0].id}`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(204);
 
-    const second = await request(app.getHttpServer())
+    const second = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(second.body.totals.stacks).toBe(0);
+    expect(bodyOf(second).totals.stacks).toBe(0);
   });
 
   test('should keep serving cached dashboard when data changes outside the API ', async () => {
     await prisma.stack.create({ data: { name: 'A', userId } });
-    const first = await request(app.getHttpServer())
+    const first = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(first.body.totals.stacks).toBe(1);
+    expect(bodyOf(first).totals.stacks).toBe(1);
 
     await prisma.stack.create({ data: { name: 'B', userId } });
-    const second = await request(app.getHttpServer())
+    const second = await request(getAppServer(app))
       .get('/dashboard')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(second.body.totals.stacks).toBe(1);
+    expect(bodyOf(second).totals.stacks).toBe(1);
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get('/dashboard')
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 });

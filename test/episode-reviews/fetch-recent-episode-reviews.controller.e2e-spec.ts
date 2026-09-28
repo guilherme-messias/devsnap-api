@@ -8,6 +8,8 @@ import request from 'supertest';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
 import { createTestFocusSession } from '../helpers/create-test-focus-session';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   let app: INestApplication;
@@ -30,7 +32,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     app = moduleRef.createNestApplication();
 
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -104,101 +106,101 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
   });
 
   test('should return the most recent episode reviews', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.episodeReviews).toBeInstanceOf(Array);
-    expect(response.body.episodeReviews.length).toBe(1);
-    expect(response.body.episodeReviews[0].result).toBe('Review 2');
+    expect(bodyOf(response).episodeReviews).toBeInstanceOf(Array);
+    expect(bodyOf(response).episodeReviews.length).toBe(1);
+    expect(bodyOf(response).episodeReviews[0].result).toBe('Review 2');
   });
 
   test('should paginate correctly when page=2', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=2`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.episodeReviews).toBeInstanceOf(Array);
-    expect(response.body.episodeReviews.length).toBe(1);
-    expect(response.body.episodeReviews[0].result).toBe('Review 1');
+    expect(bodyOf(response).episodeReviews).toBeInstanceOf(Array);
+    expect(bodyOf(response).episodeReviews.length).toBe(1);
+    expect(bodyOf(response).episodeReviews[0].result).toBe('Review 1');
   });
 
   test('should default to page 1 when page is not provided', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.episodeReviews).toBeInstanceOf(Array);
-    expect(response.body.episodeReviews.length).toBe(1);
-    expect(response.body.episodeReviews[0].result).toBe('Review 2');
+    expect(bodyOf(response).episodeReviews).toBeInstanceOf(Array);
+    expect(bodyOf(response).episodeReviews.length).toBe(1);
+    expect(bodyOf(response).episodeReviews[0].result).toBe('Review 2');
   });
 
   test('should return 200 with empty reviews array when there are no reviews', async () => {
     await prisma.episodeReview.deleteMany({ where: { episodeId } });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.episodeReviews).toBeInstanceOf(Array);
-    expect(response.body.episodeReviews.length).toBe(0);
+    expect(bodyOf(response).episodeReviews).toBeInstanceOf(Array);
+    expect(bodyOf(response).episodeReviews.length).toBe(0);
   });
 
   test('should return 200 with empty reviews array when page exceeds total pages', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=3`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(response.body.episodeReviews).toBeInstanceOf(Array);
-    expect(response.body.episodeReviews.length).toBe(0);
+    expect(bodyOf(response).episodeReviews).toBeInstanceOf(Array);
+    expect(bodyOf(response).episodeReviews.length).toBe(0);
   });
 
   test('should return 400 when page is less than 1', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=0`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body.message).toBe('Validation failed');
+    expect(bodyOf(response).message).toBe('Validation failed');
   });
 
   test('should return 400 when episodeId is not a uuid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/invalid-uuid/reviews?page=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
-    expect(response.body.message).toBe('Validation failed');
+    expect(bodyOf(response).message).toBe('Validation failed');
   });
 
   test('should return 404 when episode is not found', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${'00000000-0000-0000-0000-000000000000'}/reviews?page=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
-    expect(response.body.message).toBe('Episode not found');
+    expect(bodyOf(response).message).toBe('Episode not found');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=1`)
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
   });
 
   test('should return 404 when the episode belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .get(`/episodes/${episodeId}/reviews?page=1`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
-    expect(response.body.message).toBe('Episode not found');
+    expect(bodyOf(response).message).toBe('Episode not found');
   });
 });

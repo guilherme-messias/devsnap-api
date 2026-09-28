@@ -8,6 +8,8 @@ import { PrismaService } from '@infrastructure/prisma/prisma.service';
 import { randomUUID } from 'crypto';
 import { createTestUser } from '../helpers/create-test-user';
 import { authenticateTestUser } from '../helpers/authenticate-test-user';
+import { getAppServer } from '../helpers/http-server';
+import { bodyOf } from '../helpers/body-of';
 
 describe('Create Focus Session (E2E)', () => {
   let app: INestApplication;
@@ -29,7 +31,7 @@ describe('Create Focus Session (E2E)', () => {
 
     app = moduleRef.createNestApplication();
     prisma = moduleRef.get(PrismaService);
-    cache = moduleRef.get(CacheRepository) as InMemoryCacheRepository;
+    cache = moduleRef.get<InMemoryCacheRepository>(CacheRepository);
 
     await app.init();
 
@@ -97,35 +99,35 @@ describe('Create Focus Session (E2E)', () => {
   });
 
   test('should create a focus session when payload is valid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ stackId })
       .expect(201);
 
-    expect(response.body).toEqual({
-      id: expect.any(String),
+    expect(bodyOf(response)).toEqual({
+      id: expect.any(String) as string,
       stackId,
       status: 'in_progress',
-      startedAt: expect.any(String),
+      startedAt: expect.any(String) as string,
       currentIndex: 0,
       items: expect.arrayContaining([
         {
           episodeId: episodeIds[0],
-          position: expect.any(Number),
+          position: expect.any(Number) as number,
           status: 'pending',
         },
         {
           episodeId: episodeIds[1],
-          position: expect.any(Number),
+          position: expect.any(Number) as number,
           status: 'pending',
         },
-      ]),
+      ]) as Array<{ episodeId: string; position: number; status: string }>,
     });
-    expect(response.body.items).toHaveLength(2);
+    expect(bodyOf(response).items).toHaveLength(2);
     expect(
-      response.body.items
-        .map((item: { position: number }) => item.position)
+      bodyOf(response)
+        .items.map((item: { position: number }) => item.position)
         .sort(),
     ).toEqual([0, 1]);
   });
@@ -135,55 +137,55 @@ describe('Create Focus Session (E2E)', () => {
       data: { name: 'Empty', userId },
     });
 
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ stackId: emptyStack.id })
       .expect(400);
 
-    expect(response.body.message).toEqual('Stack has no episodes');
+    expect(bodyOf(response).message).toEqual('Stack has no episodes');
   });
 
   test('should return 400 when payload is invalid', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({})
       .expect(400);
 
-    expect(response.body.message).toContain('Validation failed');
+    expect(bodyOf(response).message).toContain('Validation failed');
   });
 
   test('should return 404 when stack does not exist', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ stackId: randomUUID() })
       .expect(404);
 
-    expect(response.body.message).toEqual('Stack not found');
+    expect(bodyOf(response).message).toEqual('Stack not found');
   });
 
   test('should return 401 when the authorization header is missing', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .send({ stackId })
       .expect(401);
 
-    expect(response.body.message).toBe('Unauthorized');
+    expect(bodyOf(response).message).toBe('Unauthorized');
 
     const sessionsOnDatabase = await prisma.focusSession.count();
     expect(sessionsOnDatabase).toBe(0);
   });
 
   test('should return 404 when the stack belongs to another user', async () => {
-    const response = await request(app.getHttpServer())
+    const response = await request(getAppServer(app))
       .post('/focus-sessions')
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .send({ stackId })
       .expect(404);
 
-    expect(response.body.message).toEqual('Stack not found');
+    expect(bodyOf(response).message).toEqual('Stack not found');
 
     const sessionsOnDatabase = await prisma.focusSession.count();
     expect(sessionsOnDatabase).toBe(0);
