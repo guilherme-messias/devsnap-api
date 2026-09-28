@@ -81,6 +81,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
         episodeId,
         result: 'Review 1',
         focusSessionId: focusSession.id,
+        reviewAt: new Date('2024-01-01T00:00:00.000Z'),
       },
     });
 
@@ -89,6 +90,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
         episodeId,
         result: 'Review 2',
         focusSessionId: focusSession.id,
+        reviewAt: new Date('2024-01-02T00:00:00.000Z'),
       },
     });
   });

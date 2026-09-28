@@ -127,7 +127,7 @@ describe('Create Focus Session (E2E)', () => {
     expect(bodyOf(response).items).toHaveLength(2);
     expect(
       bodyOf(response)
-        .items.map((item: { position: number }) => item.position)
+        .items.map((item) => item.position)
         .sort(),
     ).toEqual([0, 1]);
   });

@@ -21,21 +21,21 @@ type E2eEntity = {
   startedAt?: string;
   reviewAt?: string;
   accessToken?: string;
-  refreshToken?: string;
+  refreshToken: string;
   avatarUrl?: string | null;
   role?: string | null;
   createdAt?: string;
   updatedAt?: string;
-  stack?: E2eEntity;
-  annotation?: E2eEntity;
-  episode?: E2eEntity;
-  annotations?: E2eEntity[];
-  episodes?: E2eEntity[];
-  stacks?: E2eEntity[];
-  episodeReviews?: E2eEntity[];
-  focusSessions?: E2eEntity[];
-  items?: E2eEntity[];
-  totals?: {
+  stack: E2eEntity;
+  annotation: E2eEntity;
+  episode: E2eEntity;
+  annotations: E2eEntity[];
+  episodes: E2eEntity[];
+  stacks: E2eEntity[];
+  episodeReviews: E2eEntity[];
+  focusSessions: E2eEntity[];
+  items: E2eEntity[];
+  totals: {
     stacks?: number;
     episodes?: number;
     pending?: number;

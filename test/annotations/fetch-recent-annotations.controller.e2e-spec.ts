@@ -54,6 +54,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
       data: {
         text: 'Test Annotation',
         episodeId,
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
       },
     });
 
@@ -61,6 +62,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
       data: {
         text: 'Another Test Annotation',
         episodeId,
+        createdAt: new Date('2024-01-02T00:00:00.000Z'),
       },
     });
 

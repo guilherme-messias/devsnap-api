@@ -52,6 +52,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
         stackId,
         error: 'Some error',
         solution: 'Some solution',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
       },
     });
 
@@ -61,6 +62,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
         stackId,
         error: 'Some other error',
         solution: 'Some other solution',
+        createdAt: new Date('2024-01-02T00:00:00.000Z'),
       },
     });
 

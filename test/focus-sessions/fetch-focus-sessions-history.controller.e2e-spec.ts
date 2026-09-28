@@ -219,9 +219,7 @@ describe('Fetch Focus Sessions History (E2E)', () => {
     });
 
     expect(
-      bodyOf(response).focusSessions.map(
-        (session: { id: string }) => session.id,
-      ),
+      bodyOf(response).focusSessions.map((session) => session.id),
     ).not.toContain(finishedSessionId);
   });
 });
