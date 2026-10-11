@@ -134,6 +134,7 @@ Veja `.env.example`. Variáveis usadas pela aplicação:
 | `TEST_DATABASE_URL` | para e2e | Banco/schema usado nos testes e2e |
 | `JWT_PRIVATE_KEY` | sim | Chave privada RSA em base64 |
 | `JWT_PUBLIC_KEY` | sim | Chave pública RSA em base64 |
+| `FRONTEND_URL` | sim | URL do frontend que irá consumir a API |
 | `CACHE_DRIVER` | sim* | `redis` ou `upstash` (*default no código: `upstash`) |
 | `REDIS_URL` | se `CACHE_DRIVER=redis` | URL TCP do Redis (ex.: `redis://localhost:6379`) |
 | `UPSTASH_REDIS_REST_URL` | se `CACHE_DRIVER=upstash` | URL REST do Upstash |
