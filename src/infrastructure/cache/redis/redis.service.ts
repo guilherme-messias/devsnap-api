@@ -23,7 +23,17 @@ export class RedisService implements CacheRepository {
   }
 
   async get(key: string): Promise<string | null> {
-    return await this.client.get(key);
+    const value = await this.client.get<unknown>(key);
+
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    return JSON.stringify(value);
   }
 
   async delete(key: string): Promise<void> {
