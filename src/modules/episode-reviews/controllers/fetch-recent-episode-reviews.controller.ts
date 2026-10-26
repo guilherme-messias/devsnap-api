@@ -93,7 +93,7 @@ export class FetchRecentEpisodeReviewsController {
   ) {
     const userId = req.user.sub;
 
-    const perPage = 1;
+    const perPage = 10;
 
     const episodeReviews =
       await this.fetchRecentEpisodeReviewsService.fetchRecentEpisodeReviews(

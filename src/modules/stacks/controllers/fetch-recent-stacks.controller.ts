@@ -73,7 +73,7 @@ export class FetchRecentStacksController {
   ) {
     const userId = req.user.sub;
 
-    const perPage = 1;
+    const perPage = 10;
 
     const stacks = await this.fetchRecentStacksService.fetchRecentStacks(
       {
