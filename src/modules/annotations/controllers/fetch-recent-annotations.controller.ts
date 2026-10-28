@@ -24,7 +24,9 @@ import { FetchRecentAnnotationsService } from '../services/fetch-recent-annotati
 import { FetchRecentAnnotationsResponseDto } from '../schemas/response/fetch-recent-annotations.response.schema';
 import {
   pageQueryParamsSchema,
+  perPageQueryParamsSchema,
   type PageQueryParams,
+  type PerPageQueryParams,
 } from '@http/schemas/request/page-query.schema';
 import {
   uuidParamSchema,
@@ -32,7 +34,11 @@ import {
 } from '@http/schemas/request/uuid-param.schema';
 import type { RequestWithUser } from '@http/types/request-with-user';
 
-const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const pageQueryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const perPageQueryValidationPipe = new ZodValidationPipe(
+  perPageQueryParamsSchema,
+);
+
 @ApiTags('annotations')
 @Controller('/episodes')
 @UseGuards(AuthGuard('jwt'))
@@ -85,14 +91,13 @@ export class FetchRecentAnnotationsController {
     type: ValidationErrorResponseDto,
   })
   async fetchRecentAnnotations(
-    @Query('page', queryValidationPipe) page: PageQueryParams,
+    @Query('page', pageQueryValidationPipe) page: PageQueryParams,
+    @Query('perPage', perPageQueryValidationPipe) perPage: PerPageQueryParams,
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Req() req: RequestWithUser,
   ) {
     const userId = req.user.sub;
-
-    const perPage = 10;
 
     const annotations =
       await this.fetchRecentAnnotationsService.fetchRecentAnnotations(

@@ -114,7 +114,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return the most recent annotation', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=1`)
+      .get(`/episodes/${episodeId}/annotations?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -127,7 +127,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should paginate correctly when page=2', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=2`)
+      .get(`/episodes/${episodeId}/annotations?page=2&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -138,7 +138,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should default to page 1 when page is not provided', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations`)
+      .get(`/episodes/${episodeId}/annotations?perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -151,7 +151,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return annotations in expected response shape', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=1`)
+      .get(`/episodes/${episodeId}/annotations?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -165,7 +165,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return 401 when the authorization header is missing', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=1`)
+      .get(`/episodes/${episodeId}/annotations?page=1&perPage=1`)
       .expect(401);
 
     expect(bodyOf(response).message).toBe('Unauthorized');
@@ -173,7 +173,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return 404 when the episode belongs to another user', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=1`)
+      .get(`/episodes/${episodeId}/annotations?page=1&perPage=1`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .expect(404);
 
@@ -182,7 +182,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should only return the annotations of the authenticated user episode', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${otherEpisodeId}/annotations?page=1`)
+      .get(`/episodes/${otherEpisodeId}/annotations?page=1&perPage=1`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .expect(200);
 
@@ -195,7 +195,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
     await prisma.annotation.deleteMany({ where: { episodeId } });
 
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=3`)
+      .get(`/episodes/${episodeId}/annotations?page=3&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -205,7 +205,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return 400 when page is less than 1', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=0`)
+      .get(`/episodes/${episodeId}/annotations?page=0&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -214,7 +214,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return 400 when page is not a integer', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=abc`)
+      .get(`/episodes/${episodeId}/annotations?page=abc&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -223,7 +223,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return 400 when page is not a number', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=1.5`)
+      .get(`/episodes/${episodeId}/annotations?page=1.5&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -232,7 +232,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
 
   test('should return an empty array when the page exceeds available annotations', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/annotations?page=100`)
+      .get(`/episodes/${episodeId}/annotations?page=100&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -243,7 +243,7 @@ describe('Fetch Recent Annotations (E2E)', () => {
   test('should return 404 when episode is not found', async () => {
     const response = await request(getAppServer(app))
       .get(
-        `/episodes/${'00000000-0000-0000-0000-000000000000'}/annotations?page=1`,
+        `/episodes/${'00000000-0000-0000-0000-000000000000'}/annotations?page=1&perPage=1`,
       )
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
