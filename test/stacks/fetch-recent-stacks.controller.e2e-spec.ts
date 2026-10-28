@@ -83,7 +83,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should fetch recent stacks', async () => {
     const response = await request(getAppServer(app))
-      .get(`/stacks?page=1`)
+      .get(`/stacks?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
     expect(bodyOf(response).stacks).toBeInstanceOf(Array);
@@ -93,7 +93,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should paginate correctly when page=2', async () => {
     const response = await request(getAppServer(app))
-      .get(`/stacks?page=2`)
+      .get(`/stacks?page=2&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
     expect(bodyOf(response).stacks).toBeInstanceOf(Array);
@@ -103,7 +103,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should default to page=1 when no page query param is provided', async () => {
     const response = await request(getAppServer(app))
-      .get(`/stacks`)
+      .get(`/stacks?perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
     expect(bodyOf(response).stacks).toBeInstanceOf(Array);
@@ -113,7 +113,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should not return stacks that belong to another user', async () => {
     const firstPage = await request(getAppServer(app))
-      .get(`/stacks?page=1`)
+      .get(`/stacks?page=1&perPage=1`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
@@ -122,7 +122,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
     expect(bodyOf(firstPage).stacks[0].name).toBe('Rust');
 
     const secondPage = await request(getAppServer(app))
-      .get(`/stacks?page=2`)
+      .get(`/stacks?page=2&perPage=1`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
@@ -142,7 +142,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
     await prisma.stack.deleteMany({});
 
     const response = await request(getAppServer(app))
-      .get(`/stacks?page=1`)
+      .get(`/stacks?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -152,7 +152,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should return 400 when page is less than 1', async () => {
     const response = await request(getAppServer(app))
-      .get(`/stacks?page=0`)
+      .get(`/stacks?page=0&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -161,7 +161,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should return 400 when page is not an integer', async () => {
     const response = await request(getAppServer(app))
-      .get('/stacks?page=abc')
+      .get('/stacks?page=abc&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -170,7 +170,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should return 400 when page is not a number', async () => {
     const response = await request(getAppServer(app))
-      .get('/stacks?page=abc')
+      .get('/stacks?page=abc&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -179,7 +179,7 @@ describe('Fetch Recent Stacks (E2E)', () => {
 
   test('should return an empty array when page exceeds available stacks', async () => {
     const response = await request(getAppServer(app))
-      .get('/stacks?page=99')
+      .get('/stacks?page=99&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 

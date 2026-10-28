@@ -21,11 +21,16 @@ import { FetchRecentStacksService } from '../services/fetch-recent-stacks.servic
 import { FetchRecentStacksResponseDto } from '../schemas/response/fetch-recent-stacks.response.schema';
 import {
   pageQueryParamsSchema,
+  perPageQueryParamsSchema,
   type PageQueryParams,
+  type PerPageQueryParams,
 } from '@shared/http/schemas/request/page-query.schema';
 import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
-const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const pageQueryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const perPageQueryValidationPipe = new ZodValidationPipe(
+  perPageQueryParamsSchema,
+);
 
 @ApiTags('stacks')
 @Controller('/stacks')
@@ -51,6 +56,17 @@ export class FetchRecentStacksController {
       minimum: 1,
     },
   })
+  @ApiQuery({
+    name: 'perPage',
+    description: 'Number of items per page (default: 10)',
+    required: false,
+    schema: {
+      type: 'integer',
+      default: 10,
+      minimum: 1,
+      maximum: 100,
+    },
+  })
   @ApiResponse({
     status: 200,
     description:
@@ -68,12 +84,11 @@ export class FetchRecentStacksController {
     type: JwtUnauthorizedErrorResponseDto,
   })
   async fetchRecentStacks(
-    @Query('page', queryValidationPipe) page: PageQueryParams,
+    @Query('page', pageQueryValidationPipe) page: PageQueryParams,
+    @Query('perPage', perPageQueryValidationPipe) perPage: PerPageQueryParams,
     @Req() req: RequestWithUser,
   ) {
     const userId = req.user.sub;
-
-    const perPage = 10;
 
     const stacks = await this.fetchRecentStacksService.fetchRecentStacks(
       {

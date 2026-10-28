@@ -69,6 +69,17 @@ export class FetchRecentAnnotationsController {
       minimum: 1,
     },
   })
+  @ApiQuery({
+    name: 'perPage',
+    description: 'Number of items per page (default: 10)',
+    required: false,
+    schema: {
+      type: 'integer',
+      default: 10,
+      minimum: 1,
+      maximum: 100,
+    },
+  })
   @ApiResponse({
     status: 200,
     description:
