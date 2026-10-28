@@ -182,7 +182,9 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 404 when episode is not found', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${'00000000-0000-0000-0000-000000000000'}/reviews?page=1&perPage=1`)
+      .get(
+        `/episodes/${'00000000-0000-0000-0000-000000000000'}/reviews?page=1&perPage=1`,
+      )
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
