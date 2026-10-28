@@ -28,12 +28,20 @@ import {
   type PageQueryParams,
 } from '@http/schemas/request/page-query.schema';
 import {
+  perPageQueryParamsSchema,
+  type PerPageQueryParams,
+} from '@http/schemas/request/page-query.schema';
+import {
   uuidParamSchema,
   type UuidParam,
 } from '@http/schemas/request/uuid-param.schema';
 import type { RequestWithUser } from '@http/types/request-with-user';
 
-const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const pageQueryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const perPageQueryValidationPipe = new ZodValidationPipe(
+  perPageQueryParamsSchema,
+);
+
 @ApiTags('episode-reviews')
 @Controller('/episodes')
 @UseGuards(AuthGuard('jwt'))
@@ -64,6 +72,17 @@ export class FetchRecentEpisodeReviewsController {
       minimum: 1,
     },
   })
+  @ApiQuery({
+    name: 'perPage',
+    description: 'Number of items per page for pagination (default: 1)',
+    required: false,
+    schema: {
+      type: 'integer',
+      default: 10,
+      minimum: 1,
+      maximum: 100,
+    },
+  })
   @ApiResponse({
     status: 200,
     description:
@@ -86,14 +105,13 @@ export class FetchRecentEpisodeReviewsController {
     type: ValidationErrorResponseDto,
   })
   async fetchRecentEpisodeReviews(
-    @Query('page', queryValidationPipe) page: PageQueryParams,
+    @Query('page', pageQueryValidationPipe) page: PageQueryParams,
+    @Query('perPage', perPageQueryValidationPipe) perPage: PerPageQueryParams,
     @Param('episodeId', new ZodValidationPipe(uuidParamSchema))
     episodeId: UuidParam,
     @Req() req: RequestWithUser,
   ) {
     const userId = req.user.sub;
-
-    const perPage = 10;
 
     const episodeReviews =
       await this.fetchRecentEpisodeReviewsService.fetchRecentEpisodeReviews(

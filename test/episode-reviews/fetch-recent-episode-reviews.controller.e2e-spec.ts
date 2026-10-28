@@ -109,7 +109,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return the most recent episode reviews', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=1`)
+      .get(`/episodes/${episodeId}/reviews?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -120,7 +120,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should paginate correctly when page=2', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=2`)
+      .get(`/episodes/${episodeId}/reviews?page=2&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -131,7 +131,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should default to page 1 when page is not provided', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews`)
+      .get(`/episodes/${episodeId}/reviews?perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -144,7 +144,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
     await prisma.episodeReview.deleteMany({ where: { episodeId } });
 
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=1`)
+      .get(`/episodes/${episodeId}/reviews?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -154,7 +154,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 200 with empty reviews array when page exceeds total pages', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=3`)
+      .get(`/episodes/${episodeId}/reviews?page=3&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -164,7 +164,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 400 when page is less than 1', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=0`)
+      .get(`/episodes/${episodeId}/reviews?page=0&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -173,7 +173,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 400 when episodeId is not a uuid', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/invalid-uuid/reviews?page=1`)
+      .get(`/episodes/invalid-uuid/reviews?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -182,7 +182,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 404 when episode is not found', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${'00000000-0000-0000-0000-000000000000'}/reviews?page=1`)
+      .get(`/episodes/${'00000000-0000-0000-0000-000000000000'}/reviews?page=1&perPage=1`)
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(404);
 
@@ -191,7 +191,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 401 when the authorization header is missing', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=1`)
+      .get(`/episodes/${episodeId}/reviews?page=1&perPage=1`)
       .expect(401);
 
     expect(bodyOf(response).message).toBe('Unauthorized');
@@ -199,7 +199,7 @@ describe('Fetch Recent Episode Reviews Controller (E2E)', () => {
 
   test('should return 404 when the episode belongs to another user', async () => {
     const response = await request(getAppServer(app))
-      .get(`/episodes/${episodeId}/reviews?page=1`)
+      .get(`/episodes/${episodeId}/reviews?page=1&perPage=1`)
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(404);
 
