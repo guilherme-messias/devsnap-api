@@ -15,6 +15,10 @@ import {
   ApiTags,
   ApiOperation,
 } from '@nestjs/swagger';
+import {
+  perPageQueryParamsSchema,
+  type PerPageQueryParams,
+} from '@shared/http/schemas/request/page-query.schema';
 import { AuthGuard } from '@nestjs/passport';
 import { ValidationErrorResponseDto } from '@shared/http/schemas/response/validation-error.response.schema';
 import { JwtUnauthorizedErrorResponseDto } from '@shared/http/schemas/response/jwt-unauthorized-error.response.schema';
@@ -25,7 +29,11 @@ import {
 } from '@shared/http/schemas/request/page-query.schema';
 import type { RequestWithUser } from '@shared/http/types/request-with-user';
 
-const queryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const pageQueryValidationPipe = new ZodValidationPipe(pageQueryParamsSchema);
+const perPageQueryValidationPipe = new ZodValidationPipe(
+  perPageQueryParamsSchema,
+);
+
 @ApiTags('episodes')
 @Controller('/episodes')
 @UseGuards(AuthGuard('jwt'))
@@ -67,12 +75,11 @@ export class FetchRecentEpisodesController {
     type: JwtUnauthorizedErrorResponseDto,
   })
   async fetchRecentEpisodes(
-    @Query('page', queryValidationPipe) page: PageQueryParams,
+    @Query('page', pageQueryValidationPipe) page: PageQueryParams,
+    @Query('perPage', perPageQueryValidationPipe) perPage: PerPageQueryParams,
     @Req() req: RequestWithUser,
   ) {
     const userId = req.user.sub;
-
-    const perPage = 10;
 
     const episodes = await this.fetchRecentEpisodesService.fetchRecentEpisodes(
       {

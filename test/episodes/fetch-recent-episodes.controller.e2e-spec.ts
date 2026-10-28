@@ -103,7 +103,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return the most recent episode', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=1')
+      .get('/episodes?page=1&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -114,7 +114,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should paginate correctly when page=2', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=2')
+      .get('/episodes?page=2&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -125,7 +125,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should default to page 1 when page is not provided', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes')
+      .get('/episodes?perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -136,7 +136,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return episodes in expected response shape', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=1')
+      .get('/episodes?page=1&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -155,7 +155,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return 401 when the authorization header is missing', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=1')
+      .get('/episodes?page=1&perPage=1')
       .expect(401);
 
     expect(bodyOf(response).message).toBe('Unauthorized');
@@ -163,7 +163,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should not return episodes that belong to another user', async () => {
     const ownerThirdPage = await request(getAppServer(app))
-      .get('/episodes?page=3')
+      .get('/episodes?page=3&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -171,7 +171,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
     expect(bodyOf(ownerThirdPage).episodes.length).toBe(0);
 
     const firstPage = await request(getAppServer(app))
-      .get('/episodes?page=1')
+      .get('/episodes?page=1&perPage=1')
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
@@ -181,7 +181,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
     expect(bodyOf(firstPage).episodes[0].stackId).not.toBe(stackId);
 
     const secondPage = await request(getAppServer(app))
-      .get('/episodes?page=2')
+      .get('/episodes?page=2&perPage=1')
       .set('Authorization', `Bearer ${otherUserAccessToken}`)
       .expect(200);
 
@@ -193,7 +193,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
     await prisma.episode.deleteMany({});
 
     const response = await request(getAppServer(app))
-      .get('/episodes?page=1')
+      .get('/episodes?page=1&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
@@ -203,7 +203,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return 400 when page is less than 1', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=0')
+      .get('/episodes?page=0&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -212,7 +212,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return 400 when page is not an integer', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=abc')
+      .get('/episodes?page=abc&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -221,7 +221,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return 400 when page is not a number', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=abc')
+      .get('/episodes?page=abc&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(400);
 
@@ -230,7 +230,7 @@ describe('Fetch Recent Episodes (E2E)', () => {
 
   test('should return an empty array when page exceeds available episodes', async () => {
     const response = await request(getAppServer(app))
-      .get('/episodes?page=99')
+      .get('/episodes?page=99&perPage=1')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
